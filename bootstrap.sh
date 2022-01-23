@@ -18,7 +18,7 @@ function isDebug() {
 
 function main() {
   local tmddir="`mktemp -d -t 'macos-system'`"
-  isDebug || trap 'rm -fr -- "${tmpdir}"' EXIT
+  isDebug || trap "rm -fr -- '${tmpdir}'" EXIT
   pushd -q "${tmddir}"
   cloneMacOSSystemRepo
   cloneZSHLibRepo
