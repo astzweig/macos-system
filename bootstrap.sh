@@ -12,9 +12,13 @@ function cloneZSHLibRepo() {
   git submodule -q update --init --recursive --remote
 }
 
+function isDebug() {
+  test "${DEBUG}" -eq 1 -o "${DEBUG}" = true
+}
+
 function main() {
   local tmddir="`mktemp -d -t 'macos-system'`"
-  trap 'rm -fr -- "${tmpdir}"' EXIT
+  isDebug || trap 'rm -fr -- "${tmpdir}"' EXIT
   pushd -q "${tmddir}"
   cloneMacOSSystemRepo
   cloneZSHLibRepo
