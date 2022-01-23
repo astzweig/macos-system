@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
 
 function cloneMacOSSystemRepo() {
   local repoUrl="${MACOS_SYSTEM_REPO_URL:-https://github.com/astzweig/macos-system.git}"

@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# vi: set expandtab ft=zsh tw=80 ts=2
 
 function ensureDocopts() {
   which docopts > /dev/null
