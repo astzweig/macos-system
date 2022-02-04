@@ -158,18 +158,18 @@ function askNecessaryQuestions() {
 
 function main() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-  Usage: $0 [options] [<module>...]
-
-  Install all included modules. If any <module> arg is given, install only those
-  modules.
-
-  Options:
-    -i, --inverse  Exclude the given <module> instead.
-  ----
+	Usage: $0 [options] [<module>...]
+	
+	Install all included modules. If any <module> arg is given, install only those
+	modules.
+	
+	Options:
+	  -i, --inverse  Exclude the given <module> instead.
+	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
-  USAGE`"
+	USAGE`"
   local allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}") modulesToInstall
   filterModules
   ensureDocopts
