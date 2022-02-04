@@ -180,5 +180,5 @@ function main() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  main
+  main "$@"
 fi
