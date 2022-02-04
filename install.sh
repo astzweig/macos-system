@@ -170,7 +170,7 @@ function main() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
   USAGE`"
-  local allModules=()
+  local allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}")
   local modulesToInstall=(`getFilteredModules`)
   ensureDocopts
   autoloadZShLib
