@@ -15,20 +15,20 @@ function autoloadZShLib() {
   autoload -Uz "${funcNames[@]}"
 }
 
-function getFilteredModules() {
+function filterModules() {
   if [ "${#module}" -eq 0 ]; then
-    echo "${allModules[@]}"
+    modulesToInstall=("${allModules[@]}")
   else
-    local mod modulesToKeep=()
+    local mod
+    modulesToInstall=()
     for mod in "${allModules[@]}"; do
       local foundAtIndex="${module[(Ie)${mod}]}"
       if [ "${inverse}" != 'true' -a "${foundAtIndex}" -gt 0 ]; then
-        modulesToKeep+=("${mod}")
+        modulesToInstall+=("${mod}")
       elif [ "${inverse}" = 'true' -a "${foundAtIndex}" -eq 0 ]; then
-        modulesToKeep+=("${mod}")
+        modulesToInstall+=("${mod}")
       fi
     done
-    echo "${modulesToKeep[@]}"
   fi
 }
 
@@ -170,8 +170,8 @@ function main() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
   USAGE`"
-  local allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}")
-  local modulesToInstall=(`getFilteredModules`)
+  local allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}") modulesToInstall
+  filterModules
   ensureDocopts
   autoloadZShLib
   askNecessaryQuestions
