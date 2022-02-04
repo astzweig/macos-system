@@ -156,6 +156,14 @@ function askNecessaryQuestions() {
   done
 }
 
+function printModulesToInstall() {
+  hio info 'Modules that will install are:'
+  for mod in "${modulesToInstall[@]}"; do
+    hio debug "${mod}"
+  done
+  exit 0
+}
+
 function main() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [<module>...]
@@ -165,6 +173,8 @@ function main() {
 	
 	Options:
 	  -i, --inverse  Exclude the given <module> instead.
+	  -l, --list     List modules that are going to be installed and exit without
+	                 installation.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -174,6 +184,7 @@ function main() {
   filterModules
   ensureDocopts
   autoloadZShLib
+  [ "${list}" = true ] && printModulesToInstall
   askNecessaryQuestions
   hio debug "Current working dir is: `pwd`"
 }
