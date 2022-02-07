@@ -36,7 +36,7 @@ function filterModules() {
 function runModule() {
   local mod="$1"
   shift
-  ${_DIR:-.}/${mod} "$@"
+  "${mod}" "$@"
 }
 
 function parseQuestionLine() {
