@@ -164,6 +164,12 @@ function printModulesToInstall() {
   exit 0
 }
 
+function loadModules() {
+  allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}")
+  filterModules
+  [ "${list}" = true ] && printModulesToInstall
+}
+
 function main() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [<module>...]
@@ -180,11 +186,10 @@ function main() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
-  local allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}") modulesToInstall
-  filterModules
+  local allModules=() modulesToInstall=()
   ensureDocopts
   autoloadZShLib
-  [ "${list}" = true ] && printModulesToInstall
+  loadModules
   askNecessaryQuestions
   hio debug "Current working dir is: `pwd`"
 }
