@@ -15,6 +15,14 @@ Describe 'filterModules'
     The status should be success
   End
 
+  It 'matches modules by ending pattern'
+    allModules=(dir1/module1 dir2/module1 /dir/module1/'module3 with space') modulesToInstall=()
+    module=(module1)
+    When call filterModules
+    The variable modulesToInstall should eq 'dir1/module1 dir2/module1'
+    The status should be success
+  End
+
   It 'returns only not mentioned modules if inversed'
     allModules=(module1 module2 'module3 with space') modulesToInstall=()
     module=('module3 with space' module1)

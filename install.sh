@@ -19,13 +19,14 @@ function filterModules() {
   if [ "${#module}" -eq 0 ]; then
     modulesToInstall=("${allModules[@]}")
   else
-    local mod
+    local mod pattern="^.*(${(j.|.)module})\$"
     modulesToInstall=()
     for mod in "${allModules[@]}"; do
-      local foundAtIndex="${module[(Ie)${mod}]}"
-      if [ "${inverse}" != 'true' -a "${foundAtIndex}" -gt 0 ]; then
+      local found=false
+      [[ "${mod}" =~ ${pattern} ]] && found=true
+      if [ "${inverse}" != 'true' -a "${found}" = true ]; then
         modulesToInstall+=("${mod}")
-      elif [ "${inverse}" = 'true' -a "${foundAtIndex}" -eq 0 ]; then
+      elif [ "${inverse}" = 'true' -a "${found}" = false ]; then
         modulesToInstall+=("${mod}")
       fi
     done
@@ -159,28 +160,32 @@ function askNecessaryQuestions() {
 function printModulesToInstall() {
   hio info 'Modules that will install are:'
   for mod in "${modulesToInstall[@]}"; do
-    hio debug "${mod}"
-  done
+    echo "${mod}"
+  done | abbreviatePaths
   exit 0
 }
 
 function loadModules() {
-  allModules=("${(f)$(find ./modules -type f -perm +u=x -maxdepth 1 2> /dev/null | awk -F/ '{print $NF }' | sort -n)}")
+  modpath=("${_DIR}/modules" "${modpath[@]}")
+  allModules=("${(f)$(find "${modpath[@]}" -type f -perm +u=x -maxdepth 1 2> /dev/null | sort -n)}")
   filterModules
   [ "${list}" = true ] && printModulesToInstall
 }
 
 function main() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
-	Usage: $0 [options] [<module>...]
+	Usage: $0 [options] [-m PATH]... [<module>...]
 	
-	Install all included modules. If any <module> arg is given, install only those
-	modules.
+	Install all modules in module search path. If any <module> arg is given,
+  install only modules that either match any given <module> or whose path ends
+  like any of the given <module>.
 	
 	Options:
-	  -i, --inverse  Exclude the given <module> instead.
-	  -l, --list     List modules that are going to be installed and exit without
-	                 installation.
+	  -i, --inverse            Exclude the given <module> instead.
+	  -m PATH, --modpath PATH  Include PATH in the module search path.
+	  -l, --list               List modules that are going to be installed and
+                             exit without installation. Modules are printed in
+                             minimal but still distinct paths.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
