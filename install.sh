@@ -158,9 +158,9 @@ function askNecessaryQuestions() {
 }
 
 function printModulesToInstall() {
-  hio info 'Modules that will install are:'
+  lop section 'Modules that will install are:'
   for mod in "${modulesToInstall[@]}"; do
-    echo "${mod}"
+    hio info "${mod}"
   done | abbreviatePaths
   exit 0
 }
@@ -196,7 +196,7 @@ function main() {
   autoloadZShLib
   loadModules
   askNecessaryQuestions
-  hio debug "Current working dir is: `pwd`"
+  lop debug "Current working dir is: `pwd`"
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
