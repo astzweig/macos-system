@@ -149,7 +149,6 @@ function answerQuestionsFromConfigOrAskUser() {
 
 function askNecessaryQuestions() {
   local mod
-  local -A answers
   for mod in "${modulesToInstall[@]}"; do
     local -A questions=()
     populateQuestionsWithModuleRequiredInformation
@@ -172,6 +171,30 @@ function loadModules() {
   [ "${list}" = true ] && printModulesToInstall
 }
 
+function generateModuleOptions() {
+  local value answerKey optionKey
+  for answerKey in ${(k)answers}; do
+    [[ ${answerKey} = ${mod}_* ]] || continue
+    optionKey="${answerKey#${mod}_}"
+    value="${answers[${answerKey}]}"
+    if [[ "${optionKey}" =~ ^[[:alpha:]]$ ]]; then
+      moduleOptions+=("-${optionKey}" "${value}")
+    elif [[ "${optionKey}" =~ ^[[:alpha:]][-[:alpha:]]+$ ]]; then
+      moduleOptions+=("--${optionKey}" "${value}")
+    else
+      moduleOptions+=("${optionKey}" "${value}")
+    fi
+  done
+}
+
+function installModules() {
+  local mod moduleOptions
+  for mod in "${modulesToInstall[@]}"; do
+    generateModuleOptions
+    runModule "${mod}" ${moduleOptions}
+  done
+}
+
 function main() {
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [-m PATH]... [<module>...]
@@ -192,10 +215,12 @@ function main() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   local allModules=() modulesToInstall=()
+  local -A answers
   ensureDocopts
   autoloadZShLib
   loadModules
   askNecessaryQuestions
+  installModules
   lop debug "Current working dir is: `pwd`"
 }
 
