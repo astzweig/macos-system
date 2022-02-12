@@ -1,5 +1,6 @@
 Describe 'askNecessaryQuestions'
   Include ./install.sh
+  lop setoutput -l panic tostdout
 
   It 'sets config app name'
     appname=''

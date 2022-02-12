@@ -1,5 +1,6 @@
 Describe 'answerQuestionsFromConfigOrAskUser'
   Include ./install.sh
+  lop setoutput -l panic tostdout
   mod="testmod"
 
   It 'does nothing if module has no questions' 

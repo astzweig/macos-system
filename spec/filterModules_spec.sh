@@ -1,5 +1,7 @@
 Describe 'filterModules'
   Include ./install.sh
+  lop setoutput -l panic tostdout
+
   It 'returns all modules if no module arg is given'
     allModules=(module1 module2 'module3 with space') modulesToInstall=()
     When call filterModules

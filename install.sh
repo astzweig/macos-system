@@ -24,16 +24,22 @@ function configureLogging() {
 
 function filterModules() {
   if [ "${#module}" -eq 0 ]; then
+    lop debug 'No modules given as arguments. Taking all modules.'
     modulesToInstall=("${allModules[@]}")
   else
+    lop debug "Given ${#module} modules as arguments: ${module}"
+    [ "${inverse}" = true ] && lop debug 'Taking complement set.'
     local mod pattern="^.*(${(j.|.)module})\$"
     modulesToInstall=()
     for mod in "${allModules[@]}"; do
       local found=false
       [[ "${mod}" =~ ${pattern} ]] && found=true
+      lop debug "Was ${mod} found in ${pattern}: ${found}"
       if [ "${inverse}" != 'true' -a "${found}" = true ]; then
+        lop debug "Adding module ${mod}"
         modulesToInstall+=("${mod}")
       elif [ "${inverse}" = 'true' -a "${found}" = false ]; then
+        lop debug "Adding module ${mod}"
         modulesToInstall+=("${mod}")
       fi
     done
@@ -90,9 +96,13 @@ function parseQuestionLine() {
 }
 
 function populateQuestionsWithModuleRequiredInformation() {
+  log debug "Asking ${mod} for required information"
   for line in "${(f)$(runModule "${mod}" --show-required-information)}"; do
+    log debug "Says line: ${line}"
     parseQuestionLine
+    log debug "Parsing question returned status: $?"
   done
+  log debug "Parsed questions are: ${(kv)questions}"
 }
 
 function convertQuestionArgsToAskUserArgs() {
@@ -126,6 +136,7 @@ function askUserQuestion() {
   local questionAndArgs=("${(f)questions[$questionID]}") args=()
   local question="${questionAndArgs[1]}" questionArgs="${questionAndArgs[2]}"
   convertQuestionArgsToAskUserArgs
+  lop debug "Converted args for askUser are: ${args}"
   askUser "${args[@]}" "${question}"
   value="${REPLY}"
 }
@@ -143,12 +154,18 @@ function answerQuestionsFromConfigOrAskUser() {
   local questionID
   for questionID in "${(k)questions[@]}"; do
     local value configkeys=()
+    lop debug "Answering question with ID: ${questionID}"
     generateConfigKeysFromQuestionID "${mod}" "${questionID}"
+    lop debug "Config keys for question are: ${configkeys}"
     value="`config read "${configkeys[@]}"`"
+    lop debug "Config answer for key is: ${value}"
     if [ -z "${value}" ]; then
+      lop debug 'Asking user'
       askUserQuestion
+      lop debug "User answer is: ${value}"
       config write "${value}" "${configkeys[@]}"
     fi
+    lop debug "Adding answer: ${mod}_${questionID}=${value}"
     answers+=("${mod}_${questionID}" "${value}")
   done
 }
@@ -156,7 +173,10 @@ function answerQuestionsFromConfigOrAskUser() {
 function askNecessaryQuestions() {
   local mod
   config setappname "de.astzweig.macos.system-setup"
-  [ -n "${config_only}" ] && config setconfigfile "${config_only}"
+  if [ -n "${config_only}" ]; then
+    lop debug "Config only option given with value: ${config_only}"
+    config setconfigfile "${config_only}"
+  fi
   for mod in ${modulesToInstall[@]}; do
     local -A questions=()
     populateQuestionsWithModuleRequiredInformation
@@ -173,8 +193,13 @@ function printModulesToInstall() {
 }
 
 function loadModules() {
+  local mod
   modpath=("${_DIR}/modules" "${modpath[@]}")
+  lop debug "Module paths are: ${modpath[@]}"
   allModules=("${(f)$(find "${modpath[@]}" -type f -perm +u=x -maxdepth 1 2> /dev/null | sort -n)}")
+  for mod in "${allModules[@]}"; do
+    lop debug "Found module ${mod}"
+  done
   filterModules
   [ "${list}" = true ] && printModulesToInstall
 }
@@ -233,6 +258,7 @@ function main() {
   ensureDocopts
   autoloadZShLib
   configureLogging
+  lop debug "Called main with $# args: $@"
   loadModules
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
