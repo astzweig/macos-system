@@ -15,6 +15,13 @@ function autoloadZShLib() {
   autoload -Uz "${funcNames[@]}"
 }
 
+function configureLogging() {
+  local output=tostdout level=info
+  [ -n "${logfile}" ] && output="${logfile}"
+  [ "${verbose}" = true ] && level=debug
+  lop setoutput -l "${level}" "${output}"
+}
+
 function filterModules() {
   if [ "${#module}" -eq 0 ]; then
     modulesToInstall=("${allModules[@]}")
@@ -211,6 +218,8 @@ function main() {
 	  -l, --list               List modules that are going to be installed and
 	                           exit without installation. Modules are printed in
 	                           minimal but still distinct paths.
+	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
+	  -v, --verbose            Be more verbose.
 	  --config-only PATH       Ask module questions, generate config at PATH and
 	                           exit. Useful for subsequent runs with c option.
 	                           Any file at PATH will be overwritten.
@@ -223,6 +232,7 @@ function main() {
   local -A answers
   ensureDocopts
   autoloadZShLib
+  configureLogging
   loadModules
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
