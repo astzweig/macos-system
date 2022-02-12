@@ -134,7 +134,6 @@ function generateConfigKeysFromQuestionID() {
 
 function answerQuestionsFromConfigOrAskUser() {
   local questionID
-  config setappname "de.astzweig.macos.system-setup"
   for questionID in "${(k)questions[@]}"; do
     local value configkeys=()
     generateConfigKeysFromQuestionID "${mod}" "${questionID}"
@@ -149,7 +148,9 @@ function answerQuestionsFromConfigOrAskUser() {
 
 function askNecessaryQuestions() {
   local mod
-  for mod in "${modulesToInstall[@]}"; do
+  config setappname "de.astzweig.macos.system-setup"
+  [ -n "${config_only}" ] && config setconfigfile "${config_only}"
+  for mod in ${modulesToInstall[@]}; do
     local -A questions=()
     populateQuestionsWithModuleRequiredInformation
     answerQuestionsFromConfigOrAskUser
@@ -200,15 +201,19 @@ function main() {
 	Usage: $0 [options] [-m PATH]... [<module>...]
 	
 	Install all modules in module search path. If any <module> arg is given,
-  install only modules that either match any given <module> or whose path ends
-  like any of the given <module>.
+	install only modules that either match any given <module> or whose path ends
+	like any of the given <module>.
 	
 	Options:
 	  -i, --inverse            Exclude the given <module> instead.
 	  -m PATH, --modpath PATH  Include PATH in the module search path.
+	  -c PATH, --config PATH   Read module answers from config file at PATH.
 	  -l, --list               List modules that are going to be installed and
-                             exit without installation. Modules are printed in
-                             minimal but still distinct paths.
+	                           exit without installation. Modules are printed in
+	                           minimal but still distinct paths.
+	  --config-only PATH       Ask module questions, generate config at PATH and
+	                           exit. Useful for subsequent runs with c option.
+	                           Any file at PATH will be overwritten.
 	----
 	$0 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
@@ -220,6 +225,7 @@ function main() {
   autoloadZShLib
   loadModules
   askNecessaryQuestions
+  [ -z "${config_only}" ] || return 0
   installModules
   lop debug "Current working dir is: `pwd`"
 }
