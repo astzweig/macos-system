@@ -97,13 +97,13 @@ function parseQuestionLine() {
 }
 
 function populateQuestionsWithModuleRequiredInformation() {
-  log debug "Asking ${mod} for required information"
+  lop debug "Asking ${mod} for required information"
   for line in "${(f)$(runModule "${mod}" show-questions)}"; do
-    log debug "Says line: ${line}"
+    lop debug "Says line: ${line}"
     parseQuestionLine
-    log debug "Parsing question returned status: $?"
+    lop debug "Parsing question returned status: $?"
   done
-  log debug "Parsed questions are: ${(kv)questions}"
+  lop debug "Parsed questions are: ${(kv)questions}"
 }
 
 function findQuestionArgInInstruction() {
