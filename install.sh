@@ -228,9 +228,26 @@ function installModules() {
   done
 }
 
+function isMacOS() {
+  autoload is-at-least
+  [ "`uname -s`" = Darwin ] || return
+  is-at-least "10.13" "`sw_vers -productVersion 2> /dev/null`"
+}
+
+function isPlistBuddyInstalled() {
+  test -x /usr/libexec/PlistBuddy && return
+  which PlistBuddy >&! /dev/null && return
+}
+
+function checkPrerequisites() {
+  isMacOS || { lop error 'This setup is only for macOS 10.13 and up.'; return 10 }
+  isPlistBuddyInstalled || { lop error 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
+}
+
 function main() {
   ensureDocopts
   autoloadZShLib
+  checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [-m PATH]... [<module>...]
 	
