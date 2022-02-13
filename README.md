@@ -34,7 +34,7 @@ The letter at the beginning is the question type:
 
 | Question type | Description | Arguments |
 | ------------- | ----------- | --------- |
-| i (info) | A question where the user has no restrictions on input | - |
+| i (info) | A question where the user has no restrictions on input | `default`: a default answer. |
 | p (password) | A question where the user input is not printed to standard output. | - |
 | c (confirm) | A yes/no question where the user is allowed to answer yes or no. | - |
 | s (select) | A list of choices where the user can select one using numbers. | `choose from`: a comma separated list of possible select values. |

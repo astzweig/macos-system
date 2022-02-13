@@ -12,6 +12,17 @@ Describe 'convertQuestionArgsToAskUserArgs'
     The status should be success
   End
 
+  It 'converts info with default arg to info with default arg'
+    args=()
+    choices=()
+    questionArgs='info;default:Mario Kart'
+    When call convertQuestionArgsToAskUserArgs
+    The output should eq ''
+    The variable args should eq '-d Mario Kart info'
+    The variable choices should eq ''
+    The status should be success
+  End
+
   It 'converts password to -p info'
     args=() choices=() questionArgs='password'
     When call convertQuestionArgsToAskUserArgs

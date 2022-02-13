@@ -106,30 +106,43 @@ function populateQuestionsWithModuleRequiredInformation() {
   log debug "Parsed questions are: ${(kv)questions}"
 }
 
+function findQuestionArgInInstruction() {
+  local argNameToLookup="$1" arg name value
+  [ -z "${argNameToLookup}" ] && return
+  for arg in ${instructions[@]}; do
+    arg=("${(s.:.)arg}")
+    [ "${#arg}" -lt 2 ] && continue
+    name="${arg[1]}"
+    value="${arg[2]}"
+    [ "${name}" != "${argNameToLookup}" ] && continue
+    argValue="${value}"
+    return
+  done
+  return 10
+}
+
 function convertQuestionArgsToAskUserArgs() {
-  local arg argName argValue
+  local argValue
   local instructions=("${(s.;.)questionArgs}")
   local questionType="${instructions[1]}"
   shift instructions
 
   if [ "${questionType}" = 'info' ]; then
     args=(info)
+    if findQuestionArgInInstruction 'default'; then
+      test -n "${argValue}" && args=('-d' "${argValue}" ${args})
+    fi
   elif [ "${questionType}" = 'password' ]; then
     args=('-p' info)
   elif [ "${questionType}" = 'confirm' ]; then
     args=(confirm)
   elif [ "${questionType}" = 'select' ]; then
-    for arg in "${instructions[@]}"; do
-      arg=("${(s.:.)arg}")
-      [ "${#arg}" -lt 2 ] && continue
-      argName="${arg[1]}"
-      argValue="${arg[2]}"
-      [ "${argName}" != 'choose from' ] && continue
-      choices=("${(s.,.)argValue}")
-    done
-    [ "${#choices}" -ge 1 ] || return 10
+    findQuestionArgInInstruction 'choose from' || return 10
+    choices=("${(s.,.)argValue}")
+    [ "${#choices}" -ge 1 ] || return 11
     args=(choose)
   fi
+  return 0
 }
 
 function askUserQuestion() {
