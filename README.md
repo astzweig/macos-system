@@ -19,8 +19,8 @@ Scripts to align a macOS system to Astzweig system configuration.
 
 ## Required Information Format
 Modules must print their required information to stdout if they're called with
-`--show-required-information` option. Required information are all information the
-module might want to ask the user in order to configure some aspect of the system.
+`show-questions` command. Required information are all information the module
+might want to ask the user in order to configure some aspect of the system.
 
 ### Schema
 The general schema is:
