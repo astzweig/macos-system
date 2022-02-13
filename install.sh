@@ -10,8 +10,9 @@ function ensureDocopts() {
 }
 
 function autoloadZShLib() {
-  FPATH="`pwd`/zshlib:${FPATH}"
-  local funcNames=("${(@f)$(find ./zshlib -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')}")
+  export ASTZWEIG_ZSHLIB="`pwd`/zshlib"
+  FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
+  local funcNames=("${(@f)$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')}")
   autoload -Uz "${funcNames[@]}"
 }
 
