@@ -26,7 +26,7 @@ might want to ask the user in order to configure some aspect of the system.
 The general schema is:
 
 ```zsh
-#(i|p|c|s) <PARAMETER NAME>=<QUESTION> [# (<arg name>: <arg value>) [(; <arg name>: <arg value>)...]]
+#(i|p|c|s): <PARAMETER NAME>=<QUESTION> [# (<arg name>: <arg value>) [(; <arg name>: <arg value>)...]]
 s: --highlight-color=What color shall your system highlight color be? # choose from: blue,red,light green;
 p: --user-password=What color shall your system highlight color be?
 ```
