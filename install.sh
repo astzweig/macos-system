@@ -229,6 +229,8 @@ function installModules() {
 }
 
 function main() {
+  ensureDocopts
+  autoloadZShLib
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [-m PATH]... [<module>...]
 	
@@ -255,8 +257,6 @@ function main() {
 	USAGE`"
   local allModules=() modulesToInstall=()
   local -A answers
-  ensureDocopts
-  autoloadZShLib
   configureLogging
   lop debug "Called main with $# args: $@"
   loadModules
