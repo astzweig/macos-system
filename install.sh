@@ -10,7 +10,7 @@ function ensureDocopts() {
 }
 
 function autoloadZShLib() {
-  export ASTZWEIG_ZSHLIB="`pwd`/zshlib"
+  export ASTZWEIG_ZSHLIB="${_DIR}/zshlib"
   FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
   local funcNames=("${(@f)$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')}")
   autoload -Uz "${funcNames[@]}"
@@ -290,12 +290,12 @@ function main() {
   local allModules=() modulesToInstall=()
   local -A answers
   configureLogging
+  lop debug "Current working dir is: `pwd`"
   lop debug "Called main with $# args: $@"
   loadModules
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
   installModules
-  lop debug "Current working dir is: `pwd`"
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
