@@ -256,6 +256,7 @@ function isPlistBuddyInstalled() {
 function checkPrerequisites() {
   isMacOS || { lop error 'This setup is only for macOS 10.13 and up.'; return 10 }
   isPlistBuddyInstalled || { lop error 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
+  test "`id -u`" -eq 0 || { lop error 'This module requires root access. Please run as root.'; return 11 }
 }
 
 function main() {
