@@ -82,7 +82,7 @@ function parseQuestionLine() {
 
   if [ -n "${line}" ]; then
     arguments=("${(s.;.)line}")
-    for arg in "${arguments[@]}"; do
+    for arg in ${arguments[@]}; do
       arg=("${(s.:.)arg}")
       [ -z "${arg[1]}" ] && return 15
       arg[1]="`trim "${arg[1]}"`"
