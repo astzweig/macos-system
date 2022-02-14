@@ -49,7 +49,7 @@ Describe 'answerQuestionsFromConfigOrAskUser'
     The status should be success
   End
 
-  It 'stores the user answer to config'
+  It 'does not store the user answer to config'
     declare -A answers
     declare -A questions=([question-one]=$'What is your favorite color?\ninfo')
     writtenValue=""
@@ -58,7 +58,21 @@ Describe 'answerQuestionsFromConfigOrAskUser'
     When call answerQuestionsFromConfigOrAskUser
     The output should eq "What is your favorite color? "
     The variable "answers[${mod}_question-one]" should eq 'red'
-    Assert test "${writtenValue}" = 'red'
+    The variable writtenValue should eq ''
+    The status should be success
+  End
+
+  It 'does store the user answer to config in config-only mode'
+    declare -A answers
+    declare -A questions=([question-one]=$'What is your favorite color?\ninfo')
+    config_only="yes"
+    writtenValue=""
+    Data 'red'
+    config() { [ "${1}" = read ] && return; [ "${1}" = write ] && writtenValue="${2}" }
+    When call answerQuestionsFromConfigOrAskUser
+    The output should eq "What is your favorite color? "
+    The variable "answers[${mod}_question-one]" should eq 'red'
+    The variable writtenValue should eq 'red'
     The status should be success
   End
 End

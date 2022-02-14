@@ -177,7 +177,7 @@ function answerQuestionsFromConfigOrAskUser() {
       lop debug 'Asking user'
       askUserQuestion
       lop debug "User answer is: ${value}"
-      config write "${value}" "${configkeys[@]}"
+      [ -n "${config_only}" ] && config write "${value}" "${configkeys[@]}"
     fi
     lop debug "Adding answer: ${mod}_${questionID}=${value}"
     answers+=("${mod}_${questionID}" "${value}")
