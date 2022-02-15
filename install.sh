@@ -10,47 +10,47 @@ function ensureDocopts() {
 }
 
 function autoloadZShLib() {
-  export ASTZWEIG_ZSHLIB="${_DIR}/zshlib"
+  export ASTZWEIG_ZSHLIB=${_DIR}/zshlib
   FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
-  local funcNames=("${(@f)$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')}")
-  autoload -Uz "${funcNames[@]}"
+  local funcNames=(${(f)"$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')"})
+  autoload -Uz ${funcNames}
 }
 
 function configureLogging() {
   local output=tostdout level=info
-  [ -n "${logfile}" ] && output="${logfile}"
+  [ -n "${logfile}" ] && output=${logfile}
   [ "${verbose}" = true ] && level=debug
-  lop setoutput -l "${level}" "${output}"
+  lop setoutput -l ${level} ${output}
 }
 
 function filterModules() {
-  if [ "${#module}" -eq 0 ]; then
+  if [ ${#module} -eq 0 ]; then
     lop debug 'No modules given as arguments. Taking all modules.'
-    modulesToInstall=("${allModules[@]}")
+    modulesToInstall=(${allModules})
   else
     lop debug "Given ${#module} modules as arguments: ${module}"
     [ "${inverse}" = true ] && lop debug 'Taking complement set.'
     local mod pattern="^.*(${(j.|.)module})\$"
     modulesToInstall=()
-    for mod in "${allModules[@]}"; do
+    for mod in ${allModules}; do
       local found=false
-      [[ "${mod}" =~ ${pattern} ]] && found=true
+      [[ ${mod} =~ ${pattern} ]] && found=true
       lop debug "Was ${mod} found in ${pattern}: ${found}"
-      if [ "${inverse}" != 'true' -a "${found}" = true ]; then
+      if [ "${inverse}" != 'true' -a ${found} = true ]; then
         lop debug "Adding module ${mod}"
-        modulesToInstall+=("${mod}")
-      elif [ "${inverse}" = 'true' -a "${found}" = false ]; then
+        modulesToInstall+=(${mod})
+      elif [ "${inverse}" = 'true' -a ${found} = false ]; then
         lop debug "Adding module ${mod}"
-        modulesToInstall+=("${mod}")
+        modulesToInstall+=(${mod})
       fi
     done
   fi
 }
 
 function runModule() {
-  local mod="$1"
+  local mod=$1
   shift
-  "${mod}" "$@"
+  ${mod} "$@"
 }
 
 function parseQuestionLine() {
@@ -59,30 +59,30 @@ function parseQuestionLine() {
   [ -z "${line}" ] && return
   [ "${line[2]}" != ':' ] && return 10
 
-  questionType="${typeMap[${line[1]}]}"
+  questionType=$typeMap[${line[1]}]
   [ -z "${questionType}" ] && return 11
 
   # remove question type
-  [ "${line[3]}" = ' ' ] && line="${line:3}" || line="${line:2}"
+  [ "${line[3]}" = ' ' ] && line=${line:3} || line=${line:2}
 
-  line=("${(s.=.)line[@]}")
-  parameterName="${line[1]}"
+  line=(${(s.=.)line[@]})
+  parameterName=${line[1]}
   [ -z "${parameterName}" ] && return 12
-  [ "${parameterName[1]}" = '-' ] && return 13
+  [ "${parameterName[1]}" = - ] && return 13
 
   # remove parameter name
   line="${(j.=.)${(@)line:1}}"
 
   line=("${(s. #.)line}")
-  question="${line[1]}"
+  question=${line[1]}
   [ -z "${question}" ] && return 14
 
   # remove question part
   line="${(j. #.)${(@)line:1}}"
 
   if [ -n "${line}" ]; then
-    arguments=("${(s.;.)line}")
-    for arg in ${arguments[@]}; do
+    arguments=(${(s.;.)line})
+    for arg in ${arguments}; do
       arg=("${(s.:.)arg}")
       [ -z "${arg[1]}" ] && return 15
       arg[1]="`trim "${arg[1]}"`"
@@ -98,7 +98,7 @@ function parseQuestionLine() {
 
 function populateQuestionsWithModuleRequiredInformation() {
   lop debug "Asking ${mod} for required information"
-  for line in "${(f)$(runModule "${mod}" show-questions)}"; do
+  for line in ${(f)"$(runModule "${mod}" show-questions)"}; do
     lop debug "Says line: ${line}"
     parseQuestionLine
     lop debug "Parsing question returned status: $?"
@@ -109,7 +109,7 @@ function populateQuestionsWithModuleRequiredInformation() {
 function findQuestionArgInInstruction() {
   local argNameToLookup="$1" arg name value
   [ -z "${argNameToLookup}" ] && return
-  for arg in ${instructions[@]}; do
+  for arg in ${instructions}; do
     arg=("${(s.:.)arg}")
     [ "${#arg}" -lt 2 ] && continue
     name="${arg[1]}"
@@ -166,7 +166,7 @@ function generateConfigKeysFromQuestionID() {
 
 function answerQuestionsFromConfigOrAskUser() {
   local questionID
-  for questionID in "${(k)questions[@]}"; do
+  for questionID in ${(k)questions}; do
     local value configkeys=()
     lop debug "Answering question with ID: ${questionID}"
     generateConfigKeysFromQuestionID "${mod}" "${questionID}"
@@ -191,7 +191,7 @@ function askNecessaryQuestions() {
     lop debug "Config only option given with value: ${config_only}"
     config setconfigfile "${config_only}"
   fi
-  for mod in ${modulesToInstall[@]}; do
+  for mod in ${modulesToInstall}; do
     local -A questions=()
     populateQuestionsWithModuleRequiredInformation
     answerQuestionsFromConfigOrAskUser
@@ -200,7 +200,7 @@ function askNecessaryQuestions() {
 
 function printModulesToInstall() {
   lop section 'Modules that will install are:'
-  for mod in "${modulesToInstall[@]}"; do
+  for mod in "${modulesToInstall}"; do
     hio info "${mod}"
   done | abbreviatePaths
   exit 0
@@ -210,8 +210,8 @@ function loadModules() {
   local mod
   modpath=("${_DIR}/modules" "${modpath[@]}")
   lop debug "Module paths are: ${modpath[@]}"
-  allModules=("${(f)$(find "${modpath[@]}" -type f -perm +u=x -maxdepth 1 2> /dev/null | sort -n)}")
-  for mod in "${allModules[@]}"; do
+  allModules=(${(f)"$(find "${modpath[@]}" -type f -perm +u=x -maxdepth 1 2> /dev/null | sort -n)"})
+  for mod in ${allModules}; do
     lop debug "Found module ${mod}"
   done
   filterModules
@@ -236,7 +236,7 @@ function generateModuleOptions() {
 
 function installModules() {
   local mod moduleOptions
-  for mod in "${modulesToInstall[@]}"; do
+  for mod in ${modulesToInstall}; do
     generateModuleOptions
     runModule "${mod}" ${moduleOptions}
   done

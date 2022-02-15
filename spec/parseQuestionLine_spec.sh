@@ -53,9 +53,18 @@ Describe 'parseQuestionLine'
     The status should be success
   End
 
+  It 'ignores empty arguments'
+    declare -A questions
+    line='i: parameter-name=What parameter do you like? # some arg: some value;;'
+    When call parseQuestionLine
+    The output should eq ''
+    The line 1 of variable 'questions[parameter-name]' should eq 'What parameter do you like?'
+    The status should eq 0
+  End
+
   It 'does nothing if an argument does not contain a name'
     declare -A questions
-    line='i: parameter-name=What parameter do you like? # some arg = some value;;'
+    line='i: parameter-name=What parameter do you like? # some arg: some value;:some value;'
     When call parseQuestionLine
     The output should eq ''
     The variable 'questions' should eq ''
