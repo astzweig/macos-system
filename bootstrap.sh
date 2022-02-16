@@ -30,9 +30,16 @@ function main() {
   local tmpdir="`mktemp -d -t 'macos-system'`"
   isDebug || trap "rm -fr -- '${tmpdir}'; return" INT TERM EXIT
   pushd -q "${tmpdir}"
+  printf 'Installing macos-system...'
   cloneMacOSSystemRepo
+  printf 'done\n'
+  printf 'Installing zshlib...'
   cloneZSHLibRepo
+  printf 'done\n'
+  printf 'Ensure docopts is installed...'
   ensureDocopts
+  printf 'done\n'
+  printf 'Will now run the installer\n.'
   sudo "${tmpdir}/install.sh" "$@"
   popd -q
 }
