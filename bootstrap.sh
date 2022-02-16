@@ -22,7 +22,7 @@ function cloneZSHLibRepo() {
 }
 
 function isDebug() {
-  test "${DEBUG}" -eq 1 -o "${DEBUG}" = true
+  test "${DEBUG}" = true -o "${DEBUG}" = 1
 }
 
 function main() {
