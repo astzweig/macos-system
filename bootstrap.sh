@@ -1,6 +1,14 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
+function ensureDocopts() {
+  which docopts > /dev/null
+  [ $? -eq 0 ] && return
+  curl --output ./docopts -fsSL https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64
+  chmod u+x ./docopts
+  PATH="`pwd`:${PATH}"
+}
+
 function cloneMacOSSystemRepo() {
   local repoUrl="${MACOS_SYSTEM_REPO_URL:-https://github.com/astzweig/macos-system.git}"
   git clone -q "${repoUrl}" .
@@ -24,6 +32,7 @@ function main() {
   pushd -q "${tmpdir}"
   cloneMacOSSystemRepo
   cloneZSHLibRepo
+  ensureDocopts
   sudo "${tmpdir}/install.sh" "$@"
   popd -q
 }

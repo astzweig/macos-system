@@ -1,14 +1,6 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
-function ensureDocopts() {
-  which docopts > /dev/null
-  [ $? -eq 0 ] && return
-  curl --output ./docopts -fsSL https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64
-  chmod u+x ./docopts
-  PATH="`pwd`:${PATH}"
-}
-
 function autoloadZShLib() {
   export ASTZWEIG_ZSHLIB=${_DIR}/zshlib
   FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
@@ -260,7 +252,6 @@ function checkPrerequisites() {
 }
 
 function main() {
-  ensureDocopts
   autoloadZShLib
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
