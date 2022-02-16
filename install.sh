@@ -1,20 +1,6 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
-function autoloadZShLib() {
-  export ASTZWEIG_ZSHLIB=${_DIR}/zshlib
-  FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
-  local funcNames=(${(f)"$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')"})
-  autoload -Uz ${funcNames}
-}
-
-function configureLogging() {
-  local output=tostdout level=info
-  [ -n "${logfile}" ] && output=${logfile}
-  [ "${verbose}" = true ] && level=debug
-  lop setoutput -l ${level} ${output}
-}
-
 function filterModules() {
   if [ ${#module} -eq 0 ]; then
     lop debug 'No modules given as arguments. Taking all modules.'
@@ -252,7 +238,7 @@ function checkPrerequisites() {
 }
 
 function main() {
-  autoloadZShLib
+  autoloadZShLib || return
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [-m PATH]... [<module>...]
@@ -291,5 +277,8 @@ function main() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
+  export ASTZWEIG_MACOS_SYSTEM_LIB=${_DIR}/modules/lib.sh
+  export ASTZWEIG_ZSHLIB=${_DIR}/zshlib
+  source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
   main "$@"
 fi

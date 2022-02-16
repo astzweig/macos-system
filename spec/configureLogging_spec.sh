@@ -1,5 +1,5 @@
 Describe 'configureLogging'
-  Include ./install.sh
+  Include ./modules/lib.sh
   args=()
   lop() { args=("$@") }
   setup() { args=() }
