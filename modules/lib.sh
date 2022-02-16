@@ -25,3 +25,13 @@ function checkCommands() {
     fi
   done
 }
+
+function module_main() {
+  autoloadZShLib || return
+  checkPrerequisites || return
+  eval "`docopts -f -V - -h - : "$@"`"
+  [ $# -le 1 ] && return
+  configureLogging
+  [ "${show_questions}" = true ] && { showQuestions; return }
+  configure_system
+}
