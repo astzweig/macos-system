@@ -24,11 +24,11 @@ function main() {
   pushd -q "${tmpdir}"
   cloneMacOSSystemRepo
   cloneZSHLibRepo
-  sudo "${tmpdir}/install.sh"
+  sudo "${tmpdir}/install.sh" "$@"
   popd -q
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
   _DIR="${0:A:h}"
-  main
+  main "$@"
 fi
