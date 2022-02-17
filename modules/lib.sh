@@ -26,6 +26,14 @@ function checkCommands() {
   done
 }
 
+function showQuestions() {
+  local questions=()
+  getQuestions
+  for question in ${questions}; do
+    hio info "${question}"
+  done
+}
+
 function module_main() {
   autoloadZShLib || return
   checkPrerequisites || return

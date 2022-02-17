@@ -16,16 +16,13 @@ function checkPrerequisites() {
   checkCommands
 }
 
-function showQuestions() {
-  local timezones questions question
+function getQuestions() {
+  local timezones
   timezones="`systemsetup -listtimezones | tail -n +2 | awk '{print $1}' | paste -sd, -`"
   questions=(
     'i: hostname=What shall the hostname of this host be?' 
     's: timezone=What shall the timezone of this host be? # choose from:'"${timezones};"
   )
-  for question in ${questions}; do
-    hio info "${question}"
-  done
 }
 
 function quitSystemPreferences() {
