@@ -100,16 +100,15 @@ function configure_system() {
   launchctl config user umask 027
 }
 
-if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  test -f "${ASTZWEIG_MACOS_SYSTEM_LIB}" || { echo 'This module requires macos-system library. Please run again with macos-system library provieded as a path in ASTZWEIG_MACOS_SYSTEM_LIB env variable.'; return 10 }
-  source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
-  module_main "$@" <<- USAGE
+function getUsage() {
+  local text
+  read -r -d '' text <<- USAGE
 	Usage:
 	  $0 show-questions
 	  $0 [-v] [-d FILE] --hostname NAME --timezone ZONE
 	
 	Set energy, basic network and host preferences.
-
+	
 	Options:
 	  --hostname NAME  Set NAME as current host's host name.
 	  --timezone ZONE  Set ZONE as current host's timezone [default: Europe/Berlin].
@@ -120,4 +119,11 @@ if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE
+  print ${text}
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+  test -f "${ASTZWEIG_MACOS_SYSTEM_LIB}" || { echo 'This module requires macos-system library. Please run again with macos-system library provieded as a path in ASTZWEIG_MACOS_SYSTEM_LIB env variable.'; return 10 }
+  source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
+  module_main "$@"
 fi
