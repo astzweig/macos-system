@@ -119,6 +119,7 @@ function convertQuestionArgsToAskUserArgs() {
     choices=("${(s.,.)argValue}")
     [ "${#choices}" -ge 1 ] || return 11
     args=(choose)
+    findQuestionArgInInstruction 'validator' && args+=(-v ${argValue})
   fi
   return 0
 }

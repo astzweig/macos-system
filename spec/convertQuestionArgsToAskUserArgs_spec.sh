@@ -53,6 +53,14 @@ Describe 'convertQuestionArgsToAskUserArgs'
     The variable '#choices' should eq 3
   End
 
+  It 'converts validator to -v option for choose'
+    args=() choices=() questionArgs='select;validator:is_file;choose from:blue,light green,red'
+    When call convertQuestionArgsToAskUserArgs
+    The variable args should eq 'choose -v is_file'
+    The variable choices should eq 'blue light green red'
+    The variable '#choices' should eq 3
+  End
+
   It 'finds choose from arg even if many args are provided'
     args=() choices=() questionArgs='select;first arg:red;choose from:blue,light green,red;after arg:nine;after arg:nine;'
     When call convertQuestionArgsToAskUserArgs
