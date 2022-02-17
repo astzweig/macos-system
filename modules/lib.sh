@@ -35,10 +35,12 @@ function showQuestions() {
 }
 
 function module_main() {
+  local cmdName=${1:t}
+  shift
   autoloadZShLib || return
   checkPrerequisites || return
-  eval "`getUsage | docopts -f -V - -h - : "$@"`"
-  [ $# -le 1 ] && return
+  eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
+  [ $# -lt 1 ] && return
   configureLogging
   [ "${show_questions}" = true ] && { showQuestions; return }
   configure_system
