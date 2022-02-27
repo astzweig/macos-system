@@ -6,7 +6,7 @@ function ensureDocopts() {
   [ $? -eq 0 ] && return
   curl --output ./docopts -fsSL https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64
   chmod u+x ./docopts
-  PATH="`pwd`:${PATH}"
+  PATH="${PATH}:`pwd`"
 }
 
 function cloneMacOSSystemRepo() {
