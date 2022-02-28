@@ -12,12 +12,14 @@ function ensureDocopts() {
 function cloneMacOSSystemRepo() {
   local repoUrl="${MACOS_SYSTEM_REPO_URL:-https://github.com/astzweig/macos-system.git}"
   git clone -q "${repoUrl}" .
+  [ -n "${MACOS_SYSTEM_REPO_BRANCH}" ] && git checkout ${MACOS_SYSTEM_REPO_BRANCH} 2> /dev/null || true
 }
 
 function cloneZSHLibRepo() {
   local zshlibRepoUrl="${ZSHLIB_REPO_URL:-https://github.com/astzweig/zshlib.git}"
   git config --file=.gitmodules submodule.zshlib.url "${zshlibRepoUrl}"
   git submodule -q sync
+  [ -n "${ZSHLIB_REPO_BRANCH}" ] && git submodule set-branch -b ${ZSHLIB_REPO_BRANCH} `git config --file=.gitmodules submodule.zshlib.path` 2> /dev/null || true
   git submodule -q update --init --recursive --remote
 }
 
