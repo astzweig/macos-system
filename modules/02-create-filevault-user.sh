@@ -148,9 +148,12 @@ function getQuestions() {
   local defaultUsername="`getDefaultUsername`" defaultFullname="`getDefaultFullname`"
   getUsersWithSecureToken
   getDefaultUserPictures
+  local defaultUsernameHint= defaultFullnameHint=
+  [ -n "${defaultUsername}" ] && defaultUsernameHint="default:${defaultUsername};"
+  [ -n "${defaultFullname}" ] && defaultFullnameHint="default:${defaultFullname};"
   questions=(
-    'i: filevault-fullname=What shall the FileVault user'\''s full name be? # default:'"${defaultFullname};"
-    'i: filevault-username=What shall the FileVault user'\''s username be? # default:'"${defaultUsername};"
+    'i: filevault-fullname=What shall the FileVault user'\''s full name be? # '"${defaultFullnameHint}"
+    'i: filevault-username=What shall the FileVault user'\''s username be? # '"${defaultUsernameHint}"
     'p: filevault-password=What shall the FileVault user'\''s password be?'
     's: filevault-picture=Select a picture for FileVault user or enter the path to your own picture # validator:isPathToPicture;choose from:'"${(j.,.)defaultUserPictures};"
     's: secure-token-user-username=Which user with a secure token shall be used? # choose from:'"${(j.,.)secureTokenUsers};"
