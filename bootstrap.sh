@@ -26,7 +26,9 @@ function isDebug() {
 }
 
 function main() {
-  id -Gn | grep admin >&! /dev/null || { echo 'This script requires root access. Please run as an admin user.' >&2; return 10 }
+  local colors=()
+  [ -t 2 ] && colors=(red "`tput setaf 1`" reset "`tput sgr0`")
+  id -Gn | grep admin >&! /dev/null || { echo "${colors[red]}"'This script requires root access. Please run as an admin user.'"${colors[reset]}" >&2; return 10 }
   local tmpdir="`mktemp -d -t 'macos-system'`"
   isDebug || trap "rm -fr -- '${tmpdir}'; return" INT TERM EXIT
   pushd -q "${tmpdir}"
