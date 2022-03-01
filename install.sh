@@ -272,7 +272,7 @@ function main() {
   local -A answers
   configureLogging
   lop debug "Current working dir is: `pwd`"
-  lop debug "Called main with $# args: $@"
+  lop -- debug "Called main with $# args: $@"
   loadModules
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
