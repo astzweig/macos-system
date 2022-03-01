@@ -1,17 +1,27 @@
 #!/usr/bin/env zsh
 
 function getDefaultFullname() {
-  scutil --get HostName 2> /dev/null
+  local computerName="`scutil --get ComputerName 2> /dev/null`"
+  lop debug 'Default full name based on current computer name is: '"$computerName"
+  print "${computerName}"
 }
 
 function getDefaultUsername() {
-  scutil --get HostName 2> /dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-'
+  local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]' '-'`"
+  lop debug 'Default username based on current computer name is: '"$username"
+  print "${username}"
 }
 
 function getUsersWithSecureToken() {
   local username
   for username in ${(f)"$(dscl . -list /Users | grep -v '^_.*')"}; do
-    sysadminctl -secureTokenStatus "${username}" 2>&1 | grep ENABLED >&! /dev/null && secureTokenUsers+=("${username}")
+    lop -n debug 'Checking if user '"${username}"' has a secure token set...'
+    if checkSecureTokenForUser "${username}"; then
+      lop debug 'found'
+      secureTokenUsers+=("${username}")
+    else
+      lop debug 'not found'
+    fi
   done
 }
 
@@ -23,17 +33,22 @@ function getDefaultUserPictures() {
 
 function convertPathToDefaultPicture() {
   local resolved=''
-  [ -r "${filevault_picture}" ] && return
+  lop debug 'Converting path '"${filevault_picture}"' to default picture path if necessary.'
+  if [ -r "${filevault_picture}" ]; then
+    lop debug 'Path seems to be a valid path already. Skipping conversion.'
+    return
+  fi
   pushd -q '/Library/User Pictures'
   resolved="`find . -type f -path "*${filevault_picture}" 2> /dev/null`"
+  lop debug 'Resolved path is' debug "${resolved}"
   popd -q
-  [ -n "${resolved}" && -r "${resolved}" ] && filevault_picture="${resolved}"
+  [ -n "${resolved}" -a -r "${resolved}" ] && filevault_picture="${resolved}"
 }
 
 function isPathToPicture() {
   local filevault_picture=$1
   convertPathToDefaultPicture
-  [ -r "${filevault_picture}" ] || return 10
+  [ -r "${filevault_picture}" ] || { lop debug 'Resolved path is not a valid path. Returning.'; return 10 }
   [[ "${filevault_picture:e:l}" =~ (tif|png|jpeg|jpg) ]] || return 11
 }
 
