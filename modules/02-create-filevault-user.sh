@@ -7,7 +7,7 @@ function getDefaultFullname() {
 }
 
 function getDefaultUsername() {
-  local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]' '-'`"
+  local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]\n' '-'`"
   lop debug 'Default username based on current computer name is: '"$username"
   print "${username}"
 }
