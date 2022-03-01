@@ -2,20 +2,20 @@
 
 function getDefaultFullname() {
   local computerName="`scutil --get ComputerName 2> /dev/null`"
-  lop debug 'Default full name based on current computer name is: '"$computerName"
+  lop debug 'Default full name based on current computer name is:' debug "$computerName"
   print "${computerName}"
 }
 
 function getDefaultUsername() {
   local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]\n' '-'`"
-  lop debug 'Default username based on current computer name is: '"$username"
+  lop debug 'Default username based on current computer name is:' debug "$username"
   print "${username}"
 }
 
 function getUsersWithSecureToken() {
   local username
   for username in ${(f)"$(dscl . -list /Users | grep -v '^_.*')"}; do
-    lop -n debug 'Checking if user '"${username}"' has a secure token set...'
+    lop -n debug 'Checking if user' debug "${username}" debug 'has a secure token set...'
     if checkSecureTokenForUser "${username}"; then
       lop debug 'found'
       secureTokenUsers+=("${username}")
@@ -33,7 +33,7 @@ function getDefaultUserPictures() {
 
 function convertPathToDefaultPicture() {
   local resolved=''
-  lop debug 'Converting path '"${filevault_picture}"' to default picture path if necessary.'
+  lop debug 'Converting path' debug "${filevault_picture}" debug 'to default picture path if necessary.'
   if [ -r "${filevault_picture}" ]; then
     lop debug 'Path seems to be a valid path already. Skipping conversion.'
     return
@@ -69,7 +69,7 @@ function createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
   lop -n info 'Creating FileVault user' debug "${un}" info '...'
   sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}" > /dev/null 2>&1
-  lop success "done"
+  lop success done
 }
 
 function configureFileVaultUser() {
