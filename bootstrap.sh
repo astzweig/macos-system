@@ -3,7 +3,8 @@
 
 function ensureDocopts() {
   which docopts > /dev/null && return
-  curl --output ./docopts -fsSL https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64 >&! /dev/null || return
+  local fileURL="${DOCOPTS_URL:-https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64}"
+  curl --output ./docopts -fsSL "${fileURL}" || return
   chmod u+x ./docopts
   PATH="${PATH}:`pwd`"
 }
