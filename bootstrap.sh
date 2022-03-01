@@ -12,7 +12,7 @@ function ensureDocopts() {
 function cloneMacOSSystemRepo() {
   local repoUrl="${MACOS_SYSTEM_REPO_URL:-https://github.com/astzweig/macos-system.git}"
   git clone -q "${repoUrl}" . 2> /dev/null || return 10
-  [ -n "${MACOS_SYSTEM_REPO_BRANCH}" ] && git checkout ${MACOS_SYSTEM_REPO_BRANCH} 2> /dev/null || true
+  [ -n "${MACOS_SYSTEM_REPO_BRANCH}" ] && git checkout -q ${MACOS_SYSTEM_REPO_BRANCH} 2> /dev/null || true
 }
 
 function cloneZSHLibRepo() {
