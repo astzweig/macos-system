@@ -216,6 +216,8 @@ function generateModuleOptions() {
 function installModules() {
   local mod moduleOptions
   for mod in ${modulesToInstall}; do
+    moduleOptions=()
+    filteredOptions=()
     generateModuleOptions
     lop debug "Running ${mod}" debug "with ${#moduleOptions} args: ${moduleOptions}"
     runModule "${mod}" ${moduleOptions}
