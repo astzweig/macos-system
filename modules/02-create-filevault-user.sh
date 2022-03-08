@@ -2,25 +2,25 @@
 
 function getDefaultFullname() {
   local computerName="`scutil --get ComputerName 2> /dev/null`"
-  lop debug 'Default full name based on current computer name is:' debug "$computerName"
+  lop -d 'Default full name based on current computer name is:' -d "$computerName"
   print "${computerName}"
 }
 
 function getDefaultUsername() {
   local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]\n' '-'`"
-  lop debug 'Default username based on current computer name is:' debug "$username"
+  lop -d 'Default username based on current computer name is:' -d "$username"
   print "${username}"
 }
 
 function getUsersWithSecureToken() {
   local username
   for username in ${(f)"$(dscl . -list /Users | grep -v '^_.*')"}; do
-    lop -n debug 'Checking if user' debug "${username}" debug 'has a secure token set...'
+    lop --no-newline -d 'Checking if user' -d "${username}" -d 'has a secure token set...'
     if checkSecureTokenForUser "${username}"; then
-      lop debug 'found'
+      lop -d 'found'
       secureTokenUsers+=("${username}")
     else
-      lop debug 'not found'
+      lop -d 'not found'
     fi
   done
 }
@@ -33,14 +33,14 @@ function getDefaultUserPictures() {
 
 function convertPathToDefaultPicture() {
   local resolved=''
-  lop debug 'Converting path' debug "${filevault_picture}" debug 'to default picture path if necessary.'
+  lop -d 'Converting path' -d "${filevault_picture}" -d 'to default picture path if necessary.'
   if [ -r "${filevault_picture}" ]; then
-    lop debug 'Path seems to be a valid path already. Skipping conversion.'
+    lop -d 'Path seems to be a valid path already. Skipping conversion.'
     return
   fi
   pushd -q '/Library/User Pictures'
   resolved="`find . -type f -path "*${filevault_picture}" 2> /dev/null`"
-  lop debug 'Resolved path is' debug "${resolved}"
+  lop -d 'Resolved path is' -d "${resolved}"
   popd -q
   [ -n "${resolved}" -a -r "${resolved}" ] && filevault_picture="${resolved}"
 }
@@ -48,7 +48,7 @@ function convertPathToDefaultPicture() {
 function isPathToPicture() {
   local filevault_picture=$1
   convertPathToDefaultPicture
-  [ -r "${filevault_picture}" ] || { lop debug 'Resolved path is not a valid path. Returning.'; return 10 }
+  [ -r "${filevault_picture}" ] || { lop -d 'Resolved path is not a valid path. Returning.'; return 10 }
   [[ "${filevault_picture:e:l}" =~ (tif|png|jpeg|jpg) ]] || return 11
 }
 
@@ -67,9 +67,9 @@ function doesFileVaultUserExist() {
 
 function createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
-  lop -n info 'Creating FileVault user' debug "${un}" info '...'
+  lop --no-newline -d 'Creating FileVault user' -d "${un}" -d '...'
   sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}" > /dev/null 2>&1
-  lop success done
+  lop -d done
 }
 
 function configureFileVaultUser() {
@@ -127,13 +127,11 @@ function allowOnlyFileVaultUserToUnlock() {
   for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
     [ "${fdeuser}" != "${username}" ] && fdesetup remove -user "${fdeuser}"
   done
-}
-
-function configure_system() {
-  checkSecureTokenForUser "${secure_token_user_username}" || { lop error 'The provided secure token user has no secure token.'; return 10 }
-  checkSecureTokenUserPassword || { lop error 'The secure token user password is incorrect.'; return 11 }
+} function configure_system() {
+  checkSecureTokenForUser "${secure_token_user_username}" || { lop -e 'The provided secure token user has no secure token.'; return 10 }
+  checkSecureTokenUserPassword || { lop -e 'The secure token user password is incorrect.'; return 11 }
   convertPathToDefaultPicture
-  isPathToPicture "${filevault_picture}" || { lop error 'The provided FileVault user picture is not a valid path to a TIF, PNG or JPEG file.'; return 12 }
+  isPathToPicture "${filevault_picture}" || { lop -e 'The provided FileVault user picture is not a valid path to a TIF, PNG or JPEG file.'; return 12 }
 
   doesFileVaultUserExist || createFileVaultUser
   configureFileVaultUser
@@ -154,7 +152,7 @@ function checkPrerequisites() {
     [sysadminctl]=''
     [scutil]=''
   )
-  test "`id -u`" -eq 0 || { lop error 'This module requires root access. Please run as root.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
   checkCommands
 }
 

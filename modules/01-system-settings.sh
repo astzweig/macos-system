@@ -12,7 +12,7 @@ function checkPrerequisites() {
     [defaults]=''
     [launchctl]=''
   )
-  test "`id -u`" -eq 0 || { lop error 'This module requires root access. Please run as root.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
   checkCommands
 }
 
@@ -26,26 +26,27 @@ function getQuestions() {
 }
 
 function quitSystemPreferences() {
-  lop debug 'Quitting System Preferences App'
+  lop -d 'Quitting System Preferences App'
   osascript -e 'tell application "System Preferences" to quit'
 }
 
 function configureComputerHostname() {
-  lop info 'Configuring computer hostname.' debug "Current hostname: `scutil --get ComputerName`"
+  lop -i 'Configuring computer hostname.'
+  lop -d "Current hostname: `scutil --get ComputerName`"
   if [[ "`scutil --get ComputerName`" != "${hostname}" ]]; then
-    lop debug 'Hostname of computer has not been set.' debug "Current hostname: `scutil --get ComputerName`"
+    lop -d 'Hostname of computer has not been set.' -d "Current hostname: `scutil --get ComputerName`"
   
     scutil --set ComputerName "${hostname}"
     scutil --set HostName "${hostname}"
     systemsetup -setcomputername "${hostname}" > /dev/null 2>&1
     systemsetup -setlocalsubnetname "${hostname}" > /dev/null 2>&1
   else
-    lop debug 'Hostname of computer seems to have already been set. Skipping.' debug "Hostname: `scutil --get ComputerName`"
+    lop -d 'Hostname of computer seems to have already been set. Skipping.' -d "Hostname: `scutil --get ComputerName`"
   fi
 }
 
 function configureBasicSystem(){
-  lop -n info 'Configuring systemsetup and nvram...'
+  lop --no-newline -i 'Configuring systemsetup and nvram...'
   # Disable the sound effects on boot
   nvram SystemAudioVolume=" "
   
@@ -57,12 +58,12 @@ function configureBasicSystem(){
   systemsetup -setrestartfreeze on >&! /dev/null
   systemsetup -f -setremotelogin off >&! /dev/null
   systemsetup -setremoteappleevents off >&! /dev/null
-  lop success 'done'
+  lop -i 'done'
   
 }
 
 function configurePowerManagement() {
-  lop -n info 'Configuring power management...'
+  lop --no-newline -i 'Configuring power management...'
   cmd=(pmset -a)
   ${cmd} displaysleep 0
   ${cmd} disksleep 0
@@ -76,17 +77,17 @@ function configurePowerManagement() {
   ${cmd} halfdim 1
   ${cmd} powernap 1
   ${cmd} hibernatemode 0
-  lop success 'done'
+  lop -i 'done'
 }
 
 function configureLoginWindow() {
-  lop -n info 'Configuring login window...'
+  lop --no-newline -i 'Configuring login window...'
   cmd=(defaults write '/Library/Preferences/com.apple.loginwindow')
   ${cmd} DisableFDEAutoLogin -bool true
   ${cmd} SHOWFULLNAME -bool false
   ${cmd} AdminHostInfo -string HostName
   ${cmd} GuestEnabled -bool false
-  lop success 'done'
+  lop -i 'done'
 }
 
 function configure_system() {
@@ -96,7 +97,7 @@ function configure_system() {
   configurePowerManagement
   configureLoginWindow
 
-  lop info 'Configuring global umask'
+  lop -i 'Configuring global umask'
   launchctl config user umask 027
 }
 

@@ -1,208 +1,37 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
-function filterModules() {
-  if [ ${#module} -eq 0 ]; then
-    lop debug 'No modules given as arguments. Taking all modules.'
-    modulesToInstall=(${allModules})
-  else
-    lop debug "Given ${#module} modules as arguments: ${module}"
-    [ "${inverse}" = true ] && lop debug 'Taking complement set.'
-    local mod pattern="^.*(${(j.|.)module})\$"
-    modulesToInstall=()
-    for mod in ${allModules}; do
-      local found=false
-      [[ ${mod} =~ ${pattern} ]] && found=true
-      lop debug "Was ${mod} found in ${pattern}: ${found}"
-      if [ "${inverse}" != 'true' -a ${found} = true ]; then
-        lop debug "Adding module ${mod}"
-        modulesToInstall+=(${mod})
-      elif [ "${inverse}" = 'true' -a ${found} = false ]; then
-        lop debug "Adding module ${mod}"
-        modulesToInstall+=(${mod})
-      fi
-    done
-  fi
-}
-
-function runModule() {
-  local mod=$1
-  shift
-  ${mod} "$@"
-}
-
-function parseQuestionLine() {
-  local questionType parameterName question value arguments args
-  local -A typeMap=([i]=info [p]=password [c]=confirm [s]=select)
-  [ -z "${line}" ] && return
-  [ "${line[2]}" != ':' ] && return 10
-
-  questionType=$typeMap[${line[1]}]
-  [ -z "${questionType}" ] && return 11
-
-  # remove question type
-  [ "${line[3]}" = ' ' ] && line=${line:3} || line=${line:2}
-
-  line=(${(s.=.)line[@]})
-  parameterName=${line[1]}
-  [ -z "${parameterName}" ] && return 12
-  [ "${parameterName[1]}" = - ] && return 13
-
-  # remove parameter name
-  line="${(j.=.)${(@)line:1}}"
-
-  line=("${(s. #.)line}")
-  question=${line[1]}
-  [ -z "${question}" ] && return 14
-
-  # remove question part
-  line="${(j. #.)${(@)line:1}}"
-
-  if [ -n "${line}" ]; then
-    arguments=(${(s.;.)line})
-    for arg in ${arguments}; do
-      arg=("${(s.:.)arg}")
-      [ -z "${arg[1]}" ] && return 15
-      arg[1]="`trim "${arg[1]}"`"
-      arg[2]="`trim "${arg[2]}"`"
-      questionType+=";${(j.:.)arg}"
-    done
-  fi
-
-
-  printf -v value '%s\n%s' "${question}" "${questionType}"
-  questions+=("${parameterName}" "${value}")
-}
-
-function populateQuestionsWithModuleRequiredInformation() {
-  lop debug "Asking ${mod} for required information"
-  for line in ${(f)"$(runModule "${mod}" show-questions)"}; do
-    lop debug "Says line: ${line}"
-    parseQuestionLine
-    lop debug "Parsing question returned status: $?"
-  done
-  lop debug "Parsed questions are: ${(kv)questions}"
-}
-
-function findQuestionArgInInstruction() {
-  local argNameToLookup="$1" arg name value
-  [ -z "${argNameToLookup}" ] && return
-  for arg in ${instructions}; do
-    arg=("${(s.:.)arg}")
-    [ "${#arg}" -lt 2 ] && continue
-    name="${arg[1]}"
-    value="${arg[2]}"
-    [ "${name}" != "${argNameToLookup}" ] && continue
-    argValue="${value}"
-    return
-  done
-  return 10
-}
-
-function convertQuestionArgsToAskUserArgs() {
-  local argValue
-  local instructions=("${(s.;.)questionArgs}")
-  local questionType="${instructions[1]}"
-  shift instructions
-
-  if [ "${questionType}" = 'info' ]; then
-    args=(info)
-    if findQuestionArgInInstruction 'default'; then
-      test -n "${argValue}" && args=('-d' "${argValue}" ${args})
-    fi
-  elif [ "${questionType}" = 'password' ]; then
-    args=('-p' info)
-  elif [ "${questionType}" = 'confirm' ]; then
-    args=(confirm)
-  elif [ "${questionType}" = 'select' ]; then
-    findQuestionArgInInstruction 'choose from' || return 10
-    choices=("${(s.,.)argValue}")
-    [ "${#choices}" -ge 1 ] || return 11
-    args=(choose)
-    findQuestionArgInInstruction 'validator' && args+=(-v ${argValue})
-  fi
-  return 0
-}
-
-function askUserQuestion() {
-  local choices
-  local questionAndArgs=("${(f)questions[$questionID]}") args=()
-  local question="${questionAndArgs[1]}" questionArgs="${questionAndArgs[2]}"
-  convertQuestionArgsToAskUserArgs
-  lop debug "Converted args for askUser are: ${args}"
-  askUser "${args[@]}" "${question}"
-  value="${REPLY}"
-}
-
-function generateConfigKeysFromQuestionID() {
-  setopt localoptions extendedglob
-  [ $# -lt 2 -o -z "$1" -o -z "$2" ] && return
-  local modName="${1}" questID="${2}"
-  modName="${${${${modName//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
-  questID="${${${${questID//-##/_}/#_/}/%_/}//[^A-Za-z_]/}"
-  configkeys=("${modName}" questions "${questID}")
-}
-
-function answerQuestionsFromConfigOrAskUser() {
-  local questionID
-  for questionID in ${(k)questions}; do
-    local value configkeys=()
-    lop debug "Answering question with ID: ${questionID}"
-    generateConfigKeysFromQuestionID "${mod}" "${questionID}"
-    lop debug "Config keys for question are: ${configkeys}"
-    value="`config read "${configkeys[@]}"`"
-    lop debug "Config answer for key is: ${value}"
-    if [ -z "${value}" ]; then
-      lop debug 'Asking user'
-      askUserQuestion
-      lop debug "User answer is: ${value}"
-      [ -n "${config_only}" ] && config write "${value}" "${configkeys[@]}"
-    fi
-    lop debug "Adding answer: ${mod}_${questionID}=${value}"
-    answers+=("${mod}_${questionID}" "${value}")
-  done
+runModule() {
+  "$@"
 }
 
 function askNecessaryQuestions() {
-  local mod
+  local mod= configOnlyArgs=()
   config setappname "de.astzweig.macos.system-setup"
   if [ -n "${config_only}" ]; then
-    lop debug "Config only option given with value: ${config_only}"
+    lop -d "Config only option given with value:" -d "${config_only}"
     config setconfigfile "${config_only}"
+    configOnlyArgs=(-x)
+  elif [ -n "${config}" ]; then
+    config setconfigfile "${config}"
   fi
-  for mod in ${modulesToInstall}; do
-    local -A questions=()
-    populateQuestionsWithModuleRequiredInformation
-    answerQuestionsFromConfigOrAskUser
-  done
+  askUserModuleQuestions ${configOnlyArgs} -c config -v moduleAnswers ${modulesToInstall}
 }
 
 function printModulesToInstall() {
-  lop section 'Modules that will install are:'
-  for mod in "${modulesToInstall}"; do
-    hio info "${mod}"
+  lop -d 'Modules that will install are:' -d "${modulesToInstall}"
+  for mod in "${modulesToInstall[@]}"; do
+    print "${mod}"
   done | abbreviatePaths
   exit 0
 }
 
-function loadModules() {
-  local mod
-  modpath=("${_DIR}/modules" "${modpath[@]}")
-  lop debug "Module paths are: ${modpath[@]}"
-  allModules=(${(f)"$(find "${modpath[@]}" -type f -perm +u=x -maxdepth 1 2> /dev/null | sort -n)"})
-  for mod in ${allModules}; do
-    lop debug "Found module ${mod}"
-  done
-  filterModules
-  [ "${list}" = true ] && printModulesToInstall
-}
-
 function generateModuleOptions() {
   local value answerKey optionKey
-  for answerKey in ${(k)answers}; do
+  for answerKey in ${(k)moduleAnswers}; do
     [[ ${answerKey} = ${mod}_* ]] || continue
     optionKey="${answerKey#${mod}_}"
-    value="${answers[${answerKey}]}"
+    value="${moduleAnswers[${answerKey}]}"
     if [[ "${optionKey}" =~ ^[[:alpha:]]$ ]]; then
       moduleOptions+=("-${optionKey}" "${value}")
     elif [[ "${optionKey}" =~ ^[[:alpha:]][-[:alpha:]]+$ ]]; then
@@ -219,8 +48,8 @@ function installModules() {
     moduleOptions=()
     filteredOptions=()
     generateModuleOptions
-    lop debug "Running ${mod}" debug "with ${#moduleOptions} args: ${moduleOptions}"
-    runModule "${mod}" ${moduleOptions}
+    lop -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${moduleOptions}"
+    runModule ${mod} ${moduleOptions}
   done
 }
 
@@ -236,9 +65,9 @@ function isPlistBuddyInstalled() {
 }
 
 function checkPrerequisites() {
-  isMacOS || { lop error 'This setup is only for macOS 10.13 and up.'; return 10 }
-  isPlistBuddyInstalled || { lop error 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
-  test "`id -u`" -eq 0 || { lop error 'This module requires root access. Please run as root.'; return 11 }
+  isMacOS || { lop -e 'This setup is only for macOS 10.13 and up.'; return 10 }
+  isPlistBuddyInstalled || { lop -e 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
 }
 
 function main() {
@@ -269,11 +98,15 @@ function main() {
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE`"
   local allModules=() modulesToInstall=()
-  local -A answers
+  local -A moduleAnswers
   configureLogging
-  lop debug "Current working dir is: `pwd`"
-  lop -- debug "Called main with $# args: $@"
-  loadModules
+  lop -d "Current working dir is: `pwd`"
+  lop -d "Called main with $# args: $*"
+
+  modpath+=("${_DIR}/modules")
+  loadModules -v modulesToInstall ${$(echo -m):^^modpath} "${module[@]}"
+  [ "${list}" = true ] && printModulesToInstall
+
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
   installModules

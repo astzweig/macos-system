@@ -20,7 +20,7 @@ function checkCommands() {
     if ! which "${cmd}" >&! /dev/null; then
       local comment=''
       [ -n "${cmds[$cmd]}" ] && comment=" ${cmds[$cmd]}"
-      lop error "This module needs ${cmd}${comment} to work."
+      lop -e "This module needs ${cmd}${comment} to work."
       return 11
     fi
   done
@@ -30,7 +30,7 @@ function showQuestions() {
   local questions=()
   getQuestions
   for question in ${questions}; do
-    hio info "${question}"
+    hio -- body "${question}"
   done
 }
 
