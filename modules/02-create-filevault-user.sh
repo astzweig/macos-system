@@ -159,7 +159,7 @@ function _allowOnlyFileVaultUserToUnlock() {
 }
 
 function allowOnlyFileVaultUserToUnlock() {
-  indicateActivity -- _allowOrEnableDiskUnlock,$1 "Disallow everyone else from unlocking disk"
+  indicateActivity -- _allowOnlyFileVaultUserToUnlock,$1 "Disallow everyone else from unlocking disk"
 }
 
 function configure_system() {
