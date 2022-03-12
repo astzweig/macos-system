@@ -48,6 +48,7 @@ function installModules() {
     moduleOptions=()
     filteredOptions=()
     generateModuleOptions
+    [[ "${verbose}" = true ]] && moduleOptions+=(-v)
     lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${moduleOptions}"
     runModule ${mod} ${moduleOptions}
   done
