@@ -102,7 +102,6 @@ function configure_system() {
   quitSystemPreferences
   configureComputerHostname
   configureBasicSystem
-  configureBasicSystem
   configurePowerManagement
   configureLoginWindow
 
