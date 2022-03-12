@@ -9,7 +9,7 @@ function askNecessaryQuestions() {
   local mod= configOnlyArgs=()
   config setappname "de.astzweig.macos.system-setup"
   if [ -n "${config_only}" ]; then
-    lop -d "Config only option given with value:" -d "${config_only}"
+    lop -- -d "Config only option given with value:" -d "${config_only}"
     config setconfigfile "${config_only}"
     configOnlyArgs=(-x)
   elif [ -n "${config}" ]; then
@@ -19,7 +19,7 @@ function askNecessaryQuestions() {
 }
 
 function printModulesToInstall() {
-  lop -d 'Modules that will install are:' -d "${modulesToInstall}"
+  lop -- -d 'Modules that will install are:' -d "${modulesToInstall}"
   for mod in "${modulesToInstall[@]}"; do
     print "${mod}"
   done | abbreviatePaths
@@ -48,7 +48,7 @@ function installModules() {
     moduleOptions=()
     filteredOptions=()
     generateModuleOptions
-    lop -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${moduleOptions}"
+    lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${moduleOptions}"
     runModule ${mod} ${moduleOptions}
   done
 }
@@ -65,9 +65,9 @@ function isPlistBuddyInstalled() {
 }
 
 function checkPrerequisites() {
-  isMacOS || { lop -e 'This setup is only for macOS 10.13 and up.'; return 10 }
-  isPlistBuddyInstalled || { lop -e 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
-  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
+  isMacOS || { lop -- -e 'This setup is only for macOS 10.13 and up.'; return 10 }
+  isPlistBuddyInstalled || { lop -- -e 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
 }
 
 function main() {
@@ -100,8 +100,8 @@ function main() {
   local allModules=() modulesToInstall=()
   local -A moduleAnswers
   configureLogging
-  lop -d "Current working dir is: `pwd`"
-  lop -d "Called main with $# args: $*"
+  lop -- -d "Current working dir is: `pwd`"
+  lop -- -d "Called main with $# args: $*"
 
   modpath+=("${_DIR}/modules")
   loadModules -v modulesToInstall ${$(echo -m):^^modpath} "${module[@]}"

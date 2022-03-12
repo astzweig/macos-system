@@ -12,7 +12,7 @@ function checkPrerequisites() {
     [defaults]=''
     [launchctl]=''
   )
-  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
   checkCommands
 }
 
@@ -26,30 +26,32 @@ function getQuestions() {
 }
 
 function quitSystemPreferences() {
-  lop -d 'Quitting System Preferences App'
-  osascript -e 'tell application "System Preferences" to quit'
+ indicateActivity -- osascript,-e,'tell application "System Preferences" to quit' 'Quitting System Preferences'
+}
+
+function setComputerName() {
+  scutil --set ComputerName "${hostname}"
+  scutil --set HostName "${hostname}"
+  scutil --set LocalHostName "${hostname}"
+  systemsetup -setcomputername "${hostname}" > /dev/null 2>&1
+  systemsetup -setlocalsubnetname "${hostname}" > /dev/null 2>&1
 }
 
 function configureComputerHostname() {
-  lop -i 'Configuring computer hostname.'
-  lop -d "Current hostname: `scutil --get ComputerName`"
-  if [[ "`scutil --get ComputerName`" != "${hostname}" ]]; then
-    lop -d 'Hostname of computer has not been set.' -d "Current hostname: `scutil --get ComputerName`"
-  
-    scutil --set ComputerName "${hostname}"
-    scutil --set HostName "${hostname}"
-    systemsetup -setcomputername "${hostname}" > /dev/null 2>&1
-    systemsetup -setlocalsubnetname "${hostname}" > /dev/null 2>&1
+  local currentComputerName="`scutil --get ComputerName`"
+  lop -y h1 -- -i 'Configure Computer Hostname'
+  if [[ "${currentComputerName}" != "${hostname}" ]]; then
+    lop -- -i 'Hostname of computer has not been set.' -i "Will set to ${hostname}."
+    indicateActivity -- setComputerName 'Setting computer name'
   else
-    lop -d 'Hostname of computer seems to have already been set. Skipping.' -d "Hostname: `scutil --get ComputerName`"
+    lop -- -i 'Hostname of computer seems to have already been set. Skipping.' -i "Hostname: $currentComputerName"
   fi
 }
 
-function configureBasicSystem(){
-  lop --no-newline -i 'Configuring systemsetup and nvram...'
+function _configureBasicSystem(){
   # Disable the sound effects on boot
   nvram SystemAudioVolume=" "
-  
+
   systemsetup -settimezone "${timezone}" >&! /dev/null
   systemsetup -setusingnetworktime on >&! /dev/null
   systemsetup -setnetworktimeserver 'time.apple.com' >&! /dev/null
@@ -58,12 +60,13 @@ function configureBasicSystem(){
   systemsetup -setrestartfreeze on >&! /dev/null
   systemsetup -f -setremotelogin off >&! /dev/null
   systemsetup -setremoteappleevents off >&! /dev/null
-  lop -i 'done'
-  
 }
 
-function configurePowerManagement() {
-  lop --no-newline -i 'Configuring power management...'
+function configureBasicSystem(){
+  indicateActivity -- _configureBasicSystem 'Configuring systemsetup and nvram'
+}
+
+function _configurePowerManagement() {
   cmd=(pmset -a)
   ${cmd} displaysleep 0
   ${cmd} disksleep 0
@@ -77,28 +80,33 @@ function configurePowerManagement() {
   ${cmd} halfdim 1
   ${cmd} powernap 1
   ${cmd} hibernatemode 0
-  lop -i 'done'
 }
 
-function configureLoginWindow() {
-  lop --no-newline -i 'Configuring login window...'
+function configurePowerManagement() {
+  indicateActivity -- _configurePowerManagement 'Configuring power management'
+}
+
+function _configureLoginWindow() {
   cmd=(defaults write '/Library/Preferences/com.apple.loginwindow')
   ${cmd} DisableFDEAutoLogin -bool true
   ${cmd} SHOWFULLNAME -bool false
   ${cmd} AdminHostInfo -string HostName
   ${cmd} GuestEnabled -bool false
-  lop -i 'done'
+}
+
+function configureLoginWindow() {
+  indicateActivity -- _configureLoginWindow 'Configuring login window'
 }
 
 function configure_system() {
   quitSystemPreferences
   configureComputerHostname
   configureBasicSystem
+  configureBasicSystem
   configurePowerManagement
   configureLoginWindow
 
-  lop -i 'Configuring global umask'
-  launchctl config user umask 027
+  indicateActivity -- launchctl,config,user,umask,027 'Configuring global umask'
 }
 
 function getUsage() {

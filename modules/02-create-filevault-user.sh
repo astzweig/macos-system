@@ -2,26 +2,22 @@
 
 function getDefaultFullname() {
   local computerName="`scutil --get ComputerName 2> /dev/null`"
-  lop -d 'Default full name based on current computer name is:' -d "$computerName"
+  lop -- -d 'Default full name based on current computer name is:' -d "$computerName"
   print "${computerName}"
 }
 
 function getDefaultUsername() {
   local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]\n' '-'`"
-  lop -d 'Default username based on current computer name is:' -d "$username"
+  lop -- -d 'Default username based on current computer name is:' -d "$username"
   print "${username}"
 }
 
 function getUsersWithSecureToken() {
   local username
   for username in ${(f)"$(dscl . -list /Users | grep -v '^_.*')"}; do
-    lop --no-newline -d 'Checking if user' -d "${username}" -d 'has a secure token set...'
-    if checkSecureTokenForUser "${username}"; then
-      lop -d 'found'
+    indicateActivity -- checkSecureTokenForUser,${username} \
+      "Checking if user ${username} has a secure token set" && \
       secureTokenUsers+=("${username}")
-    else
-      lop -d 'not found'
-    fi
   done
 }
 
@@ -31,52 +27,81 @@ function getDefaultUserPictures() {
   popd -q
 }
 
-function convertPathToDefaultPicture() {
+function _convertPathToDefaultPicture() {
   local resolved=''
-  lop -d 'Converting path' -d "${filevault_picture}" -d 'to default picture path if necessary.'
+  lop -- -d 'Converting path' -d "${filevault_picture}" -d 'to default picture path if necessary.'
   if [ -r "${filevault_picture}" ]; then
-    lop -d 'Path seems to be a valid path already. Skipping conversion.'
+    lop -- -d 'Path seems to be a valid path already. Skipping conversion.'
     return
   fi
   pushd -q '/Library/User Pictures'
-  resolved="`find . -type f -path "*${filevault_picture}" 2> /dev/null`"
-  lop -d 'Resolved path is' -d "${resolved}"
+  resolved="`find "$_" -type f -path "*${filevault_picture}" 2> /dev/null`"
+  lop -- -d 'Resolved path is' -d "${resolved}"
   popd -q
   [ -n "${resolved}" -a -r "${resolved}" ] && filevault_picture="${resolved}"
 }
 
-function isPathToPicture() {
+function convertPathToDefaultPicture() {
+  indicateActivity -- _convertPathToDefaultPicture "Resolving path of picture ${filevault_picture}"
+}
+
+function _isPathToPicture() {
   local filevault_picture=$1
   convertPathToDefaultPicture
-  [ -r "${filevault_picture}" ] || { lop -d 'Resolved path is not a valid path. Returning.'; return 10 }
+  [ -r "${filevault_picture}" ] || { lop -- -d 'Resolved path is not a valid path. Returning.'; return 10 }
   [[ "${filevault_picture:e:l}" =~ (tif|png|jpeg|jpg) ]] || return 11
 }
 
-function checkSecureTokenForUser() {
+function isPathToPicture() {
+  indicateActivity -- _isPathToPicture,$1 "Verifying $1 as picture path"
+}
+
+function _checkSecureTokenForUser() {
   local u=$1
   sysadminctl -secureTokenStatus "${u}" 2>&1 | grep ENABLED >&! /dev/null
 }
 
-function checkSecureTokenUserPassword() {
+function checkSecureTokenForUser() {
+  local u=$1
+  indicateActivity -- _checkSecureTokenForUser,$u "Checking if user $u has a secure token set"
+}
+
+function _checkSecureTokenUserPassword() {
   dscl . -authonly "${secure_token_user_username}" "${secure_token_user_password}" >&! /dev/null
 }
 
-function doesFileVaultUserExist() {
+function checkSecureTokenUserPassword() {
+  indicateActivity -- _checkSecureTokenUserPassword "Checking secure token password for user ${secure_token_user_username}"
+}
+
+function _doesFileVaultUserExist() {
   dscl . -list /Users | grep "${filevault_username}" >&! /dev/null
 }
 
-function createFileVaultUser() {
+function doesFileVaultUserExist() {
+  indicateActivity -- _doesFileVaultUserExist "Checking if ${filevault_username} already exists"
+}
+
+function _createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
-  lop --no-newline -d 'Creating FileVault user' -d "${un}" -d '...'
+  lop -n -- -d 'Creating FileVault user' -d "${un}" -d '...'
   sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}" > /dev/null 2>&1
-  lop -d done
+  lop -- -d done
+}
+
+function createFileVaultUser() {
+  indicateActivity -- _createFileVaultUser "Creating FileVault user  ${filevault_username}"
+}
+
+function _configureFileVaultUser() {
+  local un=${filevault_username}
+  dscl . -create "/Users/${un}" IsHidden 1
+  chsh -s /usr/bin/false "${un}" >&! /dev/null
+  setPictureForUser "${un}" "${filevault_picture}"
 }
 
 function configureFileVaultUser() {
-  local un=${filevault_username}
-  dscl . -create "/Users/${un}" IsHidden 1
-  chsh -s /usr/bin/false "${un}"
-  setPictureForUser "${un}" "${filevault_picture}"
+  indicateActivity -- _configureFileVaultUser "Configuring FileVault user ${filevault_username}"
 }
 
 function configureSecureToken() {
@@ -101,9 +126,9 @@ function setPictureForUser() {
   dsimport <(printf "0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName base64:dsAttrTypeStandard:JPEGPhoto\n%s:%s" "${username}" "$(base64 "${image}")") /Local/Default M
 }
 
-function allowOrEnableDiskUnlock() {
+function _allowOrEnableDiskUnlock() {
   local username="${1}" password="${2}" verb=enable
-  if fdesetup isactive 2> /dev/null; then
+  if fdesetup isactive >&! /dev/null; then
     verb=add
     canUserUnlockDisk "${username}" && return
   fi
@@ -121,17 +146,27 @@ function allowOrEnableDiskUnlock() {
 " | fdesetup "${verb}" -inputplist 2> /dev/null
 }
 
-function allowOnlyFileVaultUserToUnlock() {
+function allowOrEnableDiskUnlock() {
+  indicateActivity -- _allowOrEnableDiskUnlock,$1,$2 "Allow ${1} to unlock disk"
+}
+
+function _allowOnlyFileVaultUserToUnlock() {
   local username="${1}"
   local fdeuser
   for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
     [ "${fdeuser}" != "${username}" ] && fdesetup remove -user "${fdeuser}"
   done
-} function configure_system() {
-  checkSecureTokenForUser "${secure_token_user_username}" || { lop -e 'The provided secure token user has no secure token.'; return 10 }
-  checkSecureTokenUserPassword || { lop -e 'The secure token user password is incorrect.'; return 11 }
+}
+
+function allowOnlyFileVaultUserToUnlock() {
+  indicateActivity -- _allowOrEnableDiskUnlock,$1 "Disallow everyone else from unlocking disk"
+}
+
+function configure_system() {
+  checkSecureTokenForUser "${secure_token_user_username}" || { lop -- -e 'The provided secure token user has no secure token.'; return 10 }
+  checkSecureTokenUserPassword || { lop -- -e 'The secure token user password is incorrect.'; return 11 }
   convertPathToDefaultPicture
-  isPathToPicture "${filevault_picture}" || { lop -e 'The provided FileVault user picture is not a valid path to a TIF, PNG or JPEG file.'; return 12 }
+  isPathToPicture "${filevault_picture}" || { lop -- -e 'The provided FileVault user picture is not a valid path to a TIF, PNG or JPEG file.'; return 12 }
 
   doesFileVaultUserExist || createFileVaultUser
   configureFileVaultUser
@@ -152,7 +187,7 @@ function checkPrerequisites() {
     [sysadminctl]=''
     [scutil]=''
   )
-  test "`id -u`" -eq 0 || { lop -e 'This module requires root access. Please run as root.'; return 11 }
+  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
   checkCommands
 }
 
@@ -175,8 +210,12 @@ function getQuestions() {
 }
 
 function getUsage() {
-  local cmdName=$1 text=''
+  local cmdName=$1 text='' varname=
   local defaultUsername="`getDefaultUsername`" defaultFullname="`getDefaultFullname`"
+  for varname in defaultUsername defaultFullname; do
+    local ${varname}Str=
+    [ -n "${(P)varname}" ] && local ${varname}Str=" [default: ${(P)varname}]"
+  done
   read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions
@@ -190,11 +229,11 @@ function getUsage() {
 	
 	Options:
 	  --filevault-fullname NAME              Full name of the designated FileVault user. An
-                                           existing FileVault user will be renamed to that
-                                           name [default: ${defaultFullname}].
+	                                         existing FileVault user will be renamed to that
+	                                         name${defaultFullnameStr}.
 	  --filevault-username NAME              Username of the designated FileVault user. An
 	                                         existing FileVault user will be renamed to that
-	                                         name [default: ${defaultUsername}].
+	                                         name${defaultUsernameStr}.
 	  --filevault-password PASSWORD          Password of the designated FileVault user. The password
 	                                         an existing FileVault user will not be changed.
 	  --filevault-picture PATH_TO_PIC        The path to the picture that shall be made the FileVault

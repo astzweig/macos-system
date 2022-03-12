@@ -39,9 +39,9 @@ function module_main() {
   shift
   autoloadZShLib || return
   checkPrerequisites || return
+  configureLogging
   eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
   [ $# -lt 1 ] && return
-  configureLogging
   [ "${show_questions}" = true ] && { showQuestions; return }
   configure_system
 }
