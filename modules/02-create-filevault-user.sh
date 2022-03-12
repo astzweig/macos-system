@@ -123,7 +123,7 @@ function setPictureForUser() {
   local image="${2}"
   dscl . delete "/Users/${username}" JPEGPhoto >&! /dev/null
   dscl . delete "/Users/${username}" Picture >&! /dev/null
-  dsimport <(printf "0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName base64:dsAttrTypeStandard:JPEGPhoto\n%s:%s" "${username}" "$(base64 "${image}")") /Local/Default M
+  dscl . create "/Users/${username}" Picture "${image}"
 }
 
 function _allowOrEnableDiskUnlock() {
@@ -173,6 +173,7 @@ function configure_system() {
   checkSecureTokenForUser "${filevault_username}" || configureSecureToken
   allowOrEnableDiskUnlock "${filevault_username}" "${filevault_password}"
   allowOnlyFileVaultUserToUnlock "${filevault_username}"
+  indicateActivity -- 'diskutil,apfs,updatePreboot,/' 'Updating preboot'
 }
 
 function checkPrerequisites() {
