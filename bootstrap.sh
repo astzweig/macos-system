@@ -61,6 +61,10 @@ function ensureBinary() {
 }
 
 function main() {
+  if [ -t 0 ]; then
+    trap "stty $(stty -g)" INT TERM EXIT
+    stty -echo
+  fi
   local -A colors=() errColors=()
   defineColors
   id -Gn | grep admin >&! /dev/null || { printError 'This script requires root access. Please run as an admin user.'; return 10 }

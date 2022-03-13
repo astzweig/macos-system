@@ -72,6 +72,10 @@ function checkPrerequisites() {
 }
 
 function main() {
+  if [ -t 0 ]; then
+    trap "stty $(stty -g)" INT TERM EXIT
+    stty -echo
+  fi
   autoloadZShLib || return
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
