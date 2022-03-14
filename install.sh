@@ -42,14 +42,26 @@ function generateModuleOptions() {
   done
 }
 
+function filterPasswordOptions() {
+  local i optname optval
+  for ((i=1; i <= ${#moduleOptions}; i+=2)); do
+    optname=${moduleOptions[$i]}
+    optval=${moduleOptions[$i+1]}
+    filteredOptions+=($optname)
+    [[ $optname =~ password ]] && optval='******'
+    filteredOptions+=($optval)
+  done
+}
+
 function installModules() {
-  local mod moduleOptions
+  local mod moduleOptions filteredOptions
   for mod in ${modulesToInstall}; do
     moduleOptions=()
     filteredOptions=()
     generateModuleOptions
+    filterPasswordOptions
     [[ "${verbose}" = true ]] && moduleOptions+=(-v)
-    lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${moduleOptions}"
+    lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${filteredOptions}"
     runModule ${mod} ${moduleOptions}
   done
 }
