@@ -177,7 +177,6 @@ function configure_system() {
   checkSecureTokenForUser "${filevault_username}" || configureSecureToken
   allowOrEnableDiskUnlock "${filevault_username}" "${filevault_password}"
   allowOnlyFileVaultUserToUnlock "${filevault_username}"
-  indicateActivity -- 'diskutil,apfs,updatePreboot,/' 'Updating preboot'
 }
 
 function checkPrerequisites() {
