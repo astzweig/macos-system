@@ -65,6 +65,7 @@ function main() {
     trap "stty $(stty -g)" INT TERM EXIT
     stty -echo
   fi
+  [ -t 1 ] && tput civis && export TERMINAL_CURSOR_HIDDEN=true
   local -A colors=() errColors=()
   defineColors
   id -Gn | grep admin >&! /dev/null || { printError 'This script requires root access. Please run as an admin user.'; return 10 }
@@ -78,7 +79,10 @@ function main() {
   ensureBinary 'docopts' ensureDocopts || return
 
   print 'Will now run the installer.'
+  local -A colors=() errColors=()
+  [ -t 1 ] && tput cnorm
   sudo "${tmpdir}/install.sh" "$@"
+  [ -t 1 ] && tput civis
   popd -q
 }
 
