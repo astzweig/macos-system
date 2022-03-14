@@ -84,13 +84,14 @@ function doesFileVaultUserExist() {
 
 function _createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
-  lop -n -- -d 'Creating FileVault user' -d "${un}" -d '...'
+  lop -- -d 'Creating FileVault user' -d "${un}"
   sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}" > /dev/null 2>&1
-  lop -- -d done
+  lop -- -d 'Return value of sysadminctl is ' -d "$?"
+  return 0
 }
 
 function createFileVaultUser() {
-  indicateActivity -- _createFileVaultUser "Creating FileVault user  ${filevault_username}"
+  indicateActivity -- _createFileVaultUser "Creating FileVault user ${filevault_username}"
 }
 
 function _configureFileVaultUser() {
@@ -147,7 +148,9 @@ function _allowOrEnableDiskUnlock() {
 }
 
 function allowOrEnableDiskUnlock() {
-  indicateActivity -- _allowOrEnableDiskUnlock,$1,$2 "Allow ${1} to unlock disk"
+  local un="${1}" pw="${2}" action='Activate FileVault and allow'
+  fdesetup isactive >&! /dev/null && action='Allow'
+  indicateActivity -- _allowOrEnableDiskUnlock,$un,$pw "${action} ${un} to unlock disk"
 }
 
 function _allowOnlyFileVaultUserToUnlock() {
@@ -156,6 +159,7 @@ function _allowOnlyFileVaultUserToUnlock() {
   for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
     [ "${fdeuser}" != "${username}" ] && fdesetup remove -user "${fdeuser}"
   done
+  return 0
 }
 
 function allowOnlyFileVaultUserToUnlock() {
