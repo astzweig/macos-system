@@ -62,7 +62,7 @@ function installModules() {
     filterPasswordOptions
     [[ "${verbose}" = true ]] && moduleOptions+=(-v)
     lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${filteredOptions}"
-    runModule ${mod} ${moduleOptions}
+    runModule ${mod} ${moduleOptions} || return
   done
 }
 
