@@ -11,7 +11,7 @@ function ensureDocopts() {
 
 function cloneMacOSSystemRepo() {
   local repoUrl="${MACOS_SYSTEM_REPO_URL:-https://github.com/astzweig/macos-system.git}"
-  git clone -q "${repoUrl}" . 2> /dev/null || return 10
+  git clone --depth 1 -q "${repoUrl}" . 2> /dev/null || return 10
   [ -n "${MACOS_SYSTEM_REPO_BRANCH}" ] && git checkout -q ${MACOS_SYSTEM_REPO_BRANCH} 2> /dev/null || true
 }
 
@@ -20,7 +20,7 @@ function cloneZSHLibRepo() {
   git config --file=.gitmodules submodule.zshlib.url "${zshlibRepoUrl}"
   git submodule -q sync
   [ -n "${ZSHLIB_REPO_BRANCH}" ] && git submodule set-branch -b ${ZSHLIB_REPO_BRANCH} `git config --file=.gitmodules submodule.zshlib.path` 2> /dev/null || true
-  git submodule -q update --init --recursive --remote 2> /dev/null || return 10
+  git submodule -q update --depth 1 --init --recursive --remote 2> /dev/null || return 10
 }
 
 function isDebug() {
@@ -81,7 +81,7 @@ function main() {
   print 'Will now run the installer.'
   local -A colors=() errColors=()
   [ -t 1 ] && tput cnorm
-  sudo "${tmpdir}/install.sh" "$@"
+  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE "${tmpdir}/install.sh" "$@"
   [ -t 1 ] && tput civis
   popd -q
 }
