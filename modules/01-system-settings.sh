@@ -112,7 +112,7 @@ function getUsage() {
   local cmdName=$1 text=''
   read -r -d '' text <<- USAGE
 	Usage:
-	  $cmdName show-questions
+	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --hostname NAME --timezone ZONE
 	
 	Set energy, basic network and host preferences.

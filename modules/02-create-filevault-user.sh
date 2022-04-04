@@ -222,7 +222,7 @@ function getUsage() {
   done
   read -r -d '' text <<- USAGE
 	Usage:
-	  $cmdName show-questions
+	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --filevault-fullname NAME --filevault-username NAME --filevault-password PASSWORD --filevault-picture PATH_TO_PIC --secure-token-user-username NAME --secure-token-user-password PASSWORD
 	
 	Create a designated FileVault user who may not login to the system but is the
