@@ -1,7 +1,14 @@
 #!/usr/bin/env zsh
 
-function getDefaultFullname() {
+function getComputerName() {
+  local moduleAnswer
   local computerName="`scutil --get ComputerName 2> /dev/null`"
+  getModuleAnswerByKeyRegEx '_hostname$' && computerName=$moduleAnswer
+  print -- $computerName
+}
+
+function getDefaultFullname() {
+  local computerName="`getComputerName`"
   lop -- -d 'Default full name based on current computer name is:' -d "$computerName"
   print "${computerName}"
 }

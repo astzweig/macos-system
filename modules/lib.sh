@@ -14,6 +14,15 @@ function configureLogging() {
   lop setoutput -l ${level} ${output}
 }
 
+function getModuleAnswerByKeyRegEx() {
+  local key value
+  local searchRegEx=$1
+  for key moduleAnswer in ${modkey:^modans}; do
+    [[ $key =~ $searchRegEx ]] && return 0
+  done
+  return 1
+}
+
 function checkCommands() {
   local cmd
   for cmd in ${(k)cmds}; do
