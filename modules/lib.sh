@@ -29,10 +29,11 @@ function getModuleAnswerByKeyRegEx() {
 
 function checkCommands() {
   local cmd
-  for cmd in ${(k)cmds}; do
+  local varName=$1
+  for cmd in ${(Pk)varName}; do
     if ! which "${cmd}" >&! /dev/null; then
       local comment=''
-      [ -n "${cmds[$cmd]}" ] && comment=" ${cmds[$cmd]}"
+      [ -n "${${(P)varName}[$cmd]}" ] && comment=" ${${(P)varName}[$cmd]}"
       lop -- -e "This module needs ${cmd}${comment} to work."
       return 11
     fi
@@ -51,10 +52,11 @@ function module_main() {
   local cmdName=${1:t}
   shift
   autoloadZShLib || return
-  checkPrerequisites || return
+  checkPrerequisites cmds || return
   configureLogging
   eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
   [ $# -lt 1 ] && return
   [ "${show_questions}" = true ] && { showQuestions; return }
+  checkPrerequisites execCmds || return
   configure_system
 }
