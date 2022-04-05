@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# vi: ft=zsh
 
 function getComputerName() {
   local moduleAnswer
