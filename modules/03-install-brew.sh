@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# vi: ft=zsh
 
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
