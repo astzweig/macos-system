@@ -81,7 +81,8 @@ function main() {
   print 'Will now run the installer.'
   local -A colors=() errColors=()
   [ -t 1 ] && tput cnorm
-  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE "${tmpdir}/install.sh" "$@"
+  isDebug && export MACOS_SYSTEM_DEBUG=true
+  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE,MACOS_SYSTEM_DEBUG "${tmpdir}/install.sh" "$@"
   [ -t 1 ] && tput civis
   popd -q
 }

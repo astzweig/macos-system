@@ -7,6 +7,10 @@ function autoloadZShLib() {
   autoload -Uz "${funcNames[@]}"
 }
 
+function isDebug() {
+  test "${MACOS_SYSTEM_DEBUG}" = true -o "${MACOS_SYSTEM_DEBUG}" = 1
+}
+
 function configureLogging() {
   local output=tostdout level=info
   [ -n "${logfile}" ] && output=${logfile}
