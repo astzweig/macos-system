@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+import os
+import email
+import sys
+import re
+import hashlib
+from email.header import decode_header
+from io import BytesIO
+
+def update_sha256(sha256, stream):
+    for byte_block in iter(lambda: stream.read(4096), b""):
+        sha256.update(byte_block)
+
+def get_filename_by_sha256(sha256hash, at_path='.'):
+    with os.scandir(at_path) as it:
+        for file_or_folder in it:
+            if not file_or_folder.is_file(): continue
+            sha256 = hashlib.sha256()
+            with open(file_or_folder, "rb") as f:
+                update_sha256(sha256, f)
+            if sha256.hexdigest() == sha256hash:
+                return file_or_folder.name
+    return None
+
+ReplaceString = """
+
+This message contained an attachment that was stripped out.
+The original type was: %(content_type)s
+The filename was: %(filename)s
+It is now stored as: %(newfilename)s
+"""
+BAD_CONTENT_RE = re.compile('application/(msword|msexcel|pdf)', re.I)
+BAD_FILEEXT_RE = re.compile(r'(\.exe|\.zip|\.pif|\.scr|\.ps|\.pdf)$', re.I)
+
+def sanitise(msg):
+    # Strip out all payloads of a particular type
+    ct = msg.get_content_type()
+    # We also want to check for bad filename extensions
+    fn = msg.get_filename()
+    if decode_header(fn or '')[0][1] is not None:
+        fn = decode_header(fn)[0][0].decode(decode_header(fn)[0][1])
+    # get_filename() returns None if there's no filename
+    if BAD_CONTENT_RE.search(ct) or (fn and BAD_FILEEXT_RE.search(fn)):
+        payload = msg.get_payload(None, True)
+        newfn = 'cannot tell'
+        if isinstance(payload, bytes):
+            payload = BytesIO(payload)
+            sha256 = hashlib.sha256()
+            update_sha256(sha256, payload)
+            check_newfn = get_filename_by_sha256(sha256.hexdigest())
+            if check_newfn is not None: newfn = check_newfn
+        # Ok. This part of the message is bad, and we're going to stomp
+        # on it. First, though, we pull out the information we're about to
+        # destroy so we can tell the user about it.
+        # This returns the parameters to the content-type. The first entry
+        # is the content-type itself, which we already have.
+        params = msg.get_params()[1:]
+        # The parameters are a list of (key, value) pairs - join the
+        # key-value with '=', and the parameter list with ', '
+        params = ', '.join([ '='.join(p) for p in params ])
+        # Format up the replacement text, telling the user we ate their
+        # email attachment.
+        replace = ReplaceString % dict(content_type=ct,
+                                       filename=fn,
+                                       newfilename=newfn,
+                                       params=params)
+        # Install the text body as the new payload.
+        msg.set_payload(replace, charset='utf-8')
+        # Now we manually strip away any paramaters to the content-type
+        # header. Again, we skip the first parameter, as it's the
+        # content-type itself, and we'll stomp that next.
+        for k, v in msg.get_params()[1:]:
+            msg.del_param(k)
+        # And set the content-type appropriately.
+        msg.set_type('text/plain; charset="utf-8"')
+        # Since we've just stomped the content-type, we also kill these
+        # headers - they make no sense otherwise.
+        del msg['Content-Transfer-Encoding']
+        del msg['Content-Disposition']
+    else:
+        # Now we check for any sub-parts to the message
+        if msg.is_multipart():
+            # Call the sanitise routine on any subparts
+            payload = [ sanitise(x) for x in msg.get_payload() ]
+            # We replace the payload with our list of sanitised parts
+            msg.set_payload(payload)
+    # Return the sanitised message
+    return msg
+
+if __name__=='__main__':
+    incontent=sys.stdin.read()
+    try:
+        rootmsg=email.message_from_string(incontent)
+    except:
+        sys.stderr.write("Message could not be parsed")
+        sys.exit(1)
+    src=sanitise(rootmsg).as_string()
+
+    if src!=None:
+        sys.stdout.write(src)
+    else:
+        sys.stdout.write(incontent)

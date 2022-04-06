@@ -1,0 +1,9 @@
+#!/bin/sh
+for pdf in ./*.pdf; do
+    filename="`basename "${pdf}"`";
+    path="`dirname "${pdf}"`";
+    mkdir -p OCRed;
+    printf 'OCRing %s' "${pdf}";
+    ocrmypdf -l deu "${pdf}" "${path}/OCRed/${filename}";
+    printf '...done\n';
+done

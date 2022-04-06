@@ -1,0 +1,122 @@
+#!/bin/sh
+PATH_TO_LIBRARY="${HOME}/Projects";
+PATH_TO_DEVELOPER="${HOME}/Developer";
+
+check_for_folder_or_return_error() {
+    path2check="${1}";
+    if [ ! -d "${path2check}" ]; then
+        echo "Path ${path2check} is not a folder. Skipping.";
+        return 1;
+    fi
+}
+
+check_for_development_folder_or_return_error() {
+    path2check="${1}";
+    if [ "${path2check##*/}" != "Development" ]; then
+        echo "Path ${path2check} is not a Development folder. Skipping.";
+        return 2;
+    fi
+}
+
+remove_library_path_prefix() {
+    given_path="${1}";
+    path_with_library_prefix_removed="${given_path#${PATH_TO_LIBRARY}/}";
+    path_with_root_dot="${path_with_library_prefix_removed:-.}";
+    echo "${path_with_root_dot}";
+}
+
+remove_trailing_slash_in_path() {
+    given_path="${1}";
+    path_without_tailing_slash="${given_path%/}";
+    path_with_root_slash="${path_without_last_slash:-/}";
+    echo "${path_with_root_slash}";
+}
+
+remove_trailing_development_folder() {
+    given_path="${1}";
+    path_with_development_remove="${given_path%/Development}";
+    echo "${path_with_development_remove}";
+}
+
+remove_last_path_element() {
+    given_path="${1}";
+    path_without_last_element="${given_path%/*}";
+    path_with_root_slash="${path_without_last_element:-/}";
+    echo "${path_with_root_slash}";
+}
+
+remove_file_from_path() {
+    given_path="${1}";
+    [ -f "${given_path}" ] && given_path=`remove_last_path_element "${given_path}"`;
+    echo "${given_path}";
+}
+
+get_last_folder_in_path() {
+    given_path=`remove_file_from_path ${1}`;
+    tail_of_path="${given_path##*/}";
+    tail_with_root_slash="${tail_of_path:-/}";
+    echo "${tail_with_root_slash}";
+}
+
+reduce_path_to_owner_and_client() {
+    given_path="${1}";
+    relative_path=`remove_library_path_prefix "${library_path}"`;
+    owner_and_client_folder=`remove_trailing_development_folder "${relative_path}"`;
+    echo "${owner_and_client_folder}";
+}
+
+create_owner_folder_in_developer() {
+    owner="${1}";
+    development_path="${PATH_TO_DEVELOPER}/${owner}";
+
+    if [ ! -d "${development_path}" ]; then
+        echo "Creating: ${development_path}";
+        mkdir -p "${development_path}";
+    fi
+}
+
+link_folder_to_developer_as_client() {
+    folder="${1}";
+    owner="${2}";
+    client="${3}";
+
+    development_path="${PATH_TO_DEVELOPER}/${owner}";
+
+    if [ ! -L "${development_path}/${client}" ]; then
+        echo "  >Linked Development for client ${client} to owner ${development_path%/*}";
+        ln -s "${folder}" "${development_path}/${client}";
+    fi 
+}
+
+link_development_folders() {
+    library_path=`remove_trailing_slash_in_path "${1}"`;
+    check_for_folder_or_return_error "${library_path}" || exit $?;
+    check_for_development_folder_or_return_error "${library_path}" || exit $?;
+
+    owner_and_client_folder=`reduce_path_to_owner_and_client "${library_path}"`;
+    client=`get_last_folder_in_path "${owner_and_client_folder}"`;
+    owner="${owner_and_client_folder%/${client}}";
+
+    create_owner_folder_in_developer "${owner}";
+    link_folder_to_developer_as_client "${library_path}" "${owner}" "${client}";
+}
+
+find_and_link_development_folders() {
+    find "${PATH_TO_LIBRARY}" -type d -name "Development" -maxdepth 4 -print0 2> /dev/null |
+        while IFS= read -r -d '' line; do
+            link_development_folders "${line}";
+        done
+}
+
+find_and_link_executables() {
+    find "${PATH_TO_LIBRARY}" -type d -name "Development" -maxdepth 4 -print0 2> /dev/null |
+        while IFS= read -r -d '' line; do
+            link_development_folders "${line}";
+        done
+}
+
+main() {
+    find_and_link_development_folders;
+    find_and_link_executables;
+}
+

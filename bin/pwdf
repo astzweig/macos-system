@@ -1,0 +1,33 @@
+#!/usr/bin/osascript
+# Taken from https://gist.githubusercontent.com/scriptingosx/4a237fcf7b0cc473e7c175a86b6b3ecc/raw/8d5f184e4bd83dc481411a385a23a4b9bcf17c0e/pwdf
+
+on run arguments
+  tell application "Finder"
+    -- no argument: get frontmost window or desktop
+    if (count of arguments) is 0 then
+      if (count of windows) is 0 then
+       set dir to (desktop as alias)
+      else
+       set dir to ((target of Finder window 1) as alias)
+      end if
+    else
+      if first item of arguments is in {"all", "-a", "-all", "--all"} then
+       -- list all Finder windows
+       copy target of every Finder window to theList
+       repeat with w in theList
+        log POSIX path of (w as alias)
+       end repeat
+       return
+      end if
+      -- see if there is a window matching the name
+      set t to arguments as text
+      set wins to every Finder window where name contains t
+      if (count of wins) > 0 then
+       set dir to ((target of item 1 of wins) as alias)
+      else
+       return
+      end if
+    end if
+    return POSIX path of dir
+  end tell
+end run

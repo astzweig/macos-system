@@ -1,0 +1,28 @@
+#!/usr/bin/osascript -l JavaScript
+ObjC.import("stdlib")
+
+function showNSError(error) {
+    console.log(ObjC.unwrap(error.localizedDescription))
+}
+
+function resolveFileAlias(filePath) {
+    const aliasFile = $.NSURL.fileURLWithPathIsDirectory(filePath, false)
+    let error = $()
+    const exists = aliasFile.checkResourceIsReachableAndReturnError(error)
+    if (!exists) {
+        showNSError(error)
+        return filePath
+    }
+
+    error = $()
+    const file = $.NSURL.URLByResolvingAliasFileAtURLOptionsError(aliasFile, $.NSURLBookmarkResolutionWithoutUI, error)
+    if (file.path === aliasFile.path) showNSError(error)
+    return file.path
+}
+
+let args = $.NSProcessInfo.processInfo.arguments
+let lastIndex = args.count - 1
+var filePath = ObjC.unwrap(args.objectAtIndex(lastIndex))
+newFilePath = resolveFileAlias(filePath)
+if (newFilePath === filePath) $.exit(1)
+newFilePath
