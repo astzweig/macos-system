@@ -29,15 +29,44 @@ function getModuleAnswerByKeyRegEx() {
 
 function checkCommands() {
   local cmd
-  local varName=$1
-  for cmd in ${(Pk)varName}; do
+  for cmd in ${(k)cmds}; do
     if ! which "${cmd}" >&! /dev/null; then
       local comment=''
-      [ -n "${${(P)varName}[$cmd]}" ] && comment=" ${${(P)varName}[$cmd]}"
+      [ -n "${cmds[$cmd]}" ] && comment=" ${cmds[$cmd]}"
       lop -- -e "This module needs ${cmd}${comment} to work."
       return 11
     fi
   done
+}
+
+function checkHelpPrerequisites() {
+  local -A cmds
+  getHelpPrerequisites || return
+  checkCommands
+}
+
+function addDocoptsToCmds() {
+  cmds+=(docopts '(with -f option supported)')
+}
+
+function requireRootPrivileges() {
+  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
+}
+
+whence getHelpPrerequisites >&! /dev/null || function $_() {
+  addDocoptsToCmds
+}
+
+function checkQuestionsPrerequisites() {
+  local -A cmds
+  getQuestionsPrerequisites || return
+  checkCommands
+}
+
+function checkExecPrerequisites() {
+  local -A cmds
+  getExecPrerequisites || return
+  checkCommands
 }
 
 function showQuestions() {
@@ -52,11 +81,18 @@ function module_main() {
   local cmdName=${1:t}
   shift
   autoloadZShLib || return
-  checkPrerequisites cmds || return
+  checkHelpPrerequisites || return
   configureLogging
   eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
-  [ $# -lt 1 ] && return
+  checkQuestionsPrerequisites || return
   [ "${show_questions}" = true ] && { showQuestions; return }
-  checkPrerequisites execCmds || return
+  checkExecPrerequisites || return
   configure_system
+}
+
+function {
+  local name
+  for name in getQuestionsPrerequisites getExecPrerequisites getQuestions getUsage; do
+    whence ${name} >&! /dev/null || function $_() {}
+  done
 }

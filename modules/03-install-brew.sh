@@ -246,9 +246,8 @@ function configure_system() {
   popd -q
 }
 
-function checkPrerequisites() {
-  local -A cmds=(
-    [docopts]='(with -f option supported)'
+function getExecPrerequisites() {
+  cmds=(
     [dscl]=''
     [dseditgroup]=''
     [chown]=''
@@ -259,8 +258,7 @@ function checkPrerequisites() {
     [awk]=''
     [sysadminctl]=''
   )
-  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
-  checkCommands
+  requireRootPrivileges
 }
 
 function getDefaultHomebrewUsername() {

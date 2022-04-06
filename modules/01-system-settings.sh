@@ -1,9 +1,15 @@
 #!/usr/bin/env zsh
 # vi: ft=zsh
 
-function checkPrerequisites() {
-  local -A cmds=(
-    [docopts]='(with -f option supported)'
+function getQuestionsPrerequisites() {
+  cmds=(
+    [systemsetup]=''
+  )
+  requireRootPrivileges
+}
+
+function getExecPrerequisites() {
+  cmds=(
     [osascript]=''
     [scutil]=''
     [systemsetup]=''
@@ -12,8 +18,6 @@ function checkPrerequisites() {
     [defaults]=''
     [launchctl]=''
   )
-  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
-  checkCommands
 }
 
 function getQuestions() {

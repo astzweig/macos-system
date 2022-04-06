@@ -94,14 +94,11 @@ function configure_system() {
   popd -q
 }
 
-function checkPrerequisites() {
-  local -A cmds=(
-    [docopts]='(with -f option supported)'
-  )
-  local -A execCmds=(
+function getExecPrerequisites() {
+  cmds=(
     [brew]=''
   )
-  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
+  id -nG | grep admin >&! /dev/null || { lop -- -e 'This module requires the user to be in admin group. Please run again as either root or an admin user.'; return 11 }
   checkCommands
 }
 

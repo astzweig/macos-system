@@ -187,20 +187,30 @@ function configure_system() {
   allowOnlyFileVaultUserToUnlock "${filevault_username}"
 }
 
-function checkPrerequisites() {
-  local -A cmds=(
-    [docopts]='(with -f option supported)'
+function getHelpPrerequisites() {
+  cmds=(
     [tr]=''
-    [cut]=''
+    [scutil]=''
+  )
+  addDocoptsToCmds
+}
+
+function getQuestionsPrerequisites() {
+  cmds=(
+    [find]=''
     [dscl]=''
+    [sysadminctl]=''
+  )
+}
+
+function getExecPrerequisites() {
+  cmds=(
+    [cut]=''
     [fdesetup]=''
     [base64]=''
     [dsimport]=''
-    [sysadminctl]=''
-    [scutil]=''
   )
-  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
-  checkCommands
+  requireRootPrivileges
 }
 
 function getQuestions() {
