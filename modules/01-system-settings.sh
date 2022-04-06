@@ -127,7 +127,7 @@ function getUsage() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE
-  print ${text}
+  print -- ${text}
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
