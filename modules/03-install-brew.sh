@@ -214,6 +214,7 @@ function createLaunchDaemonsPlist() {
 </plist>" > "${launcherPath}"
   chown root:wheel ${launcherPath}
   chmod u=rw,go=r ${launcherPath}
+  launchctl bootstrap system ${launcherPath}
 }
 
 function installHomebrewUpdater() {
@@ -256,6 +257,7 @@ function getExecPrerequisites() {
     [grep]=''
     [sort]=''
     [awk]=''
+    [launchctl]=''
     [sysadminctl]=''
   )
   requireRootPrivileges
