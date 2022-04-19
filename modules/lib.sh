@@ -3,8 +3,13 @@
 function autoloadZShLib() {
   test -d "${ASTZWEIG_ZSHLIB}" || { echo "This module needs astzweig/zshlib to work." >&2; return 99 }
   FPATH="${ASTZWEIG_ZSHLIB}:${FPATH}"
-  local funcNames=(${(f)"$(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }')"})
-  autoload -Uz "${funcNames[@]}"
+  fpath+=(${ASTZWEIG_ZSHLIB})
+  if [[ -d ${ASTZWEIG_ZSHLIB} ]]; then
+    local funcNames=($(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }'))
+    autoload -Uz ${funcNames}
+  elif [[ -f ${ASTZWEIG_ZSHLIB} ]]; then
+    autoload -Uzw ${ASTZWEIG_ZSHLIB}
+  fi
 }
 
 function isDebug() {
