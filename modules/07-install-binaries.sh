@@ -9,10 +9,7 @@ function ensureRightAccess() {
 
 function configure_system() {
   local dstDir='/usr/local/bin'
-  [[ -d ${dstDir} ]] || {
-    lop -- -e "Could not install binaries. Directory ${dstDir} does not exist."
-    return 10
-  }
+  ensurePathOrLogError ${dstDir} 'Could not install binaries.' || return 10
   pushd -q ${_DIR}/../bin
   for file in *; do
     indicateActivity cp,${file},${dstDir} "Copying ${file}"
@@ -24,6 +21,7 @@ function configure_system() {
 function getExecPrerequisites() {
   cmds=(
     [cp]=''
+    [install]=''
   )
 }
 

@@ -96,10 +96,7 @@ function configure_system() {
   local xpcConsumerPath="${dstDir}/astzweig-xpc-consumer"
   local remapKeysPath="${dstDir}/remap-keys"
   local launchDaemonPath="/Library/LaunchDaemons/${serviceName}.plist"
-  [[ -d ${dstDir} ]] || {
-    lop -- -e "Could not install remap-keys. Directory ${dstDir} does not exist."
-    return 10
-  }
+  ensurePathOrLogError ${dstDir} 'Could not install remap-keys.' || return 10
   [[ -x ${remapKeysPath} ]] || indicateActivity createRemapKeysBinary 'Create remap-keys executable'
   [[ -x ${xpcConsumerPath} ]] || createXPCConsumer 'Create XPC event consuer'
   [[ -f ${launchDaemonPath} ]] || createLaunchDaemon 'Create Launch Daemon'

@@ -27,6 +27,14 @@ function getModuleAnswerByKeyRegEx() {
   return 1
 }
 
+function ensurePathOrLogError() {
+  local dir=$1 msg=$2
+  [[ -d ${dir} ]] || install -m $(umask -S) -d $(getMissingPaths ${dir}) || {
+    lop -- -e "$msg" -e "Directory ${dir} does not exist and could not be created."
+    return 10
+  }
+}
+
 function checkCommands() {
   local cmd
   for cmd in ${(k)cmds}; do
