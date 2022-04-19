@@ -7,21 +7,47 @@ function ensureRightAccess() {
   chmod ugo=rx "${filesystemItem}"
 }
 
+function copyUtilityBinaries() {
+  lop -y h1 -- -i 'Installing utility binaries'
+  for file in ${_DIR}/../bin/*; do
+    indicateActivity cp,${file},${dstDir} "Copying ${file##*/}"
+    ensureRightAccess ${file}
+  done
+}
+
+function installDocopts() {
+  local destPath='/usr/local/bin/docopts'
+  [[ -x ${destPath} ]] && return
+  indicateActivity curl,--output,${destPath},-fsSL,"${docopts_url}" 'Downloading docpts' || return
+  chown root:admin ${destPath}
+  chmod 755 ${destPath}
+}
+
 function configure_system() {
   local dstDir='/usr/local/bin'
   ensurePathOrLogError ${dstDir} 'Could not install binaries.' || return 10
-  pushd -q ${_DIR}/../bin
-  for file in *; do
-    indicateActivity cp,${file},${dstDir} "Copying ${file}"
-    ensureRightAccess "${dstDir}/${file}"
-  done
-  popd -q
+  installDocopts
+  copyUtilityBinaries
 }
 
 function getExecPrerequisites() {
   cmds=(
     [cp]=''
+    [chown]=''
+    [chmod]=''
+    [curl]=''
     [install]=''
+  )
+}
+
+function getDefaultDocoptsURL() {
+  local fileURL="${DOCOPTS_URL:-https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64}"
+  print -- ${fileURL}
+}
+
+function getQuestions() {
+  questions=(
+    'i: docopts-url=From which URL shall the docopts binary be downloaded? # default:'"$(getDefaultDocoptsURL)"
   )
 }
 
@@ -29,11 +55,13 @@ function getUsage() {
   read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE]
+	  $cmdName [-v] [-d FILE] --docopts-url URL
 	
 	Install convenient binaries for all users.
 	
 	Options:
+	  --docopts-url URL        The URL from which to download the docopts binary
+	                           [default: $(getDefaultDocoptsURL)].
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	----
