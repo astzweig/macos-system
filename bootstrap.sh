@@ -82,7 +82,7 @@ function main() {
   local -A colors=() errColors=()
   [ -t 1 ] && tput cnorm
   isDebug && export MACOS_SYSTEM_DEBUG=true
-  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE,MACOS_SYSTEM_DEBUG "${tmpdir}/install.sh" "$@"
+  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE,HOMEBREW_BREW_CASK_GIT_REMOTE,HOMEBREW_BREW_CASK_FONTS_GIT_REMOTE,MACOS_SYSTEM_DEBUG "${tmpdir}/install.sh" "$@"
   [ -t 1 ] && tput civis
   popd -q
 }
