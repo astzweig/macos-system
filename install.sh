@@ -86,7 +86,11 @@ function main() {
     trap "stty $(stty -g)" INT TERM EXIT
     stty -echo
   fi
-  [ -t 1 ] && tput civis && export TERMINAL_CURSOR_HIDDEN=true
+  if [ -t 1 ]; then
+    trap "tput cnorm" INT TERM EXIT
+    tput civis
+    export TERMINAL_CURSOR_HIDDEN=true
+  fi
   autoloadZShLib || return
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
