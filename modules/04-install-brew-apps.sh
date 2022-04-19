@@ -111,7 +111,7 @@ function getDefaultHomebrewPath() {
 
 function getQuestions() {
   questions=(
-    'i: homebrew-path=Whicht Homebrew binary shall be used? # default:'"$(getDefaultHomebrewPath)"
+    'i: homebrew-path=Which Homebrew binary shall be used? # default:'"$(getDefaultHomebrewPath)"
   )
 }
 
