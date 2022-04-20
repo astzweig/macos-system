@@ -81,16 +81,22 @@ function checkPrerequisites() {
   test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
 }
 
-function main() {
+function configureTerminal() {
   if [ -t 0 ]; then
-    trap "stty $(stty -g)" INT TERM EXIT
+    traps+=("stty $(stty -g)")
     stty -echo
   fi
   if [ -t 1 ]; then
-    trap "tput cnorm" INT TERM EXIT
+    traps+=('tput cnorm')
     tput civis
     export TERMINAL_CURSOR_HIDDEN=true
   fi
+}
+
+function main() {
+  local traps=()
+  configureTerminal
+  trap ${(j.;.)traps} INT TERM EXIT
   autoloadZShLib || return
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE

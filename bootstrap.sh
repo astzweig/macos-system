@@ -60,17 +60,29 @@ function ensureBinary() {
   printSuccess 'done'
 }
 
-function main() {
+function configureTerminal() {
   if [ -t 0 ]; then
-    trap "stty $(stty -g)" INT TERM EXIT
+    traps+=("stty $(stty -g)")
     stty -echo
   fi
-  [ -t 1 ] && tput civis && export TERMINAL_CURSOR_HIDDEN=true
+
+  if [ -t 1 ]; then
+    traps+=('tput cnorm')
+    tput civis
+    export TERMINAL_CURSOR_HIDDEN=true
+  fi
+}
+
+function main() {
+  local traps=()
   local -A colors=() errColors=()
   defineColors
   id -Gn | grep admin >&! /dev/null || { printError 'This script requires root access. Please run as an admin user.'; return 10 }
+
+  configureTerminal
   local tmpdir="`mktemp -d -t 'macos-system'`"
-  isDebug || trap "rm -fr -- '${tmpdir}'; return" INT TERM EXIT
+  isDebug || traps+=("rm -fr -- '${tmpdir}'")
+  trap ${(j.;.)traps} INT TERM EXIT
   pushd -q "${tmpdir}"
   print -l "Working directory is: ${tmpdir}"
 
