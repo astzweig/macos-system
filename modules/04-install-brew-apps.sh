@@ -72,6 +72,7 @@ function installBrews() {
   installBrew mas
   if ! isDebug; then
     installBrew python
+    installBrew rcm
     installBrew tesseract
     installBrew tesseract-lang
     installBrew ocrmypdf
