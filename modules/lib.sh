@@ -40,22 +40,10 @@ function ensurePathOrLogError() {
   }
 }
 
-function checkCommands() {
-  local cmd
-  for cmd in ${(k)cmds}; do
-    if ! which "${cmd}" >&! /dev/null; then
-      local comment=''
-      [ -n "${cmds[$cmd]}" ] && comment=" ${cmds[$cmd]}"
-      lop -- -e "This module needs ${cmd}${comment} to work."
-      return 11
-    fi
-  done
-}
-
 function checkHelpPrerequisites() {
   local -A cmds
   getHelpPrerequisites || return
-  checkCommands
+  checkCommands ${(k)cmds}
 }
 
 function addDocoptsToCmds() {
@@ -73,13 +61,13 @@ whence getHelpPrerequisites >&! /dev/null || function $_() {
 function checkQuestionsPrerequisites() {
   local -A cmds
   getQuestionsPrerequisites || return
-  checkCommands
+  checkCommands ${(k)cmds}
 }
 
 function checkExecPrerequisites() {
   local -A cmds
   getExecPrerequisites || return
-  checkCommands
+  checkCommands ${(k)cmds}
 }
 
 function showQuestions() {
