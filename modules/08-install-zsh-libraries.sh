@@ -6,8 +6,10 @@ function addLibToStartupFile() {
 
 function installZshlib() {
   local zshlibPath=${libDir}/astzweig_zshlib
-  zcompile -z -U ${zshlibPath} $(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1)
+  pushd -q ${ASTZWEIG_ZSHLIB}
+  zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
   libs+=(${zshlibPath}.zwc)
+  popd -q
 }
 
 function modifyGlobalFpath() {
