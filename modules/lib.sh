@@ -80,10 +80,14 @@ function showQuestions() {
 
 function module_main() {
   local cmdName=${1:t}
+  local -A traps=()
   shift
   autoloadZShLib || return
   checkHelpPrerequisites || return
   configureLogging
+  trap 'traps call int; return 70' INT
+  trap 'traps call term; return 80' TERM
+  trap 'traps call exit' EXIT
   eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
   checkQuestionsPrerequisites || return
   [ "${show_questions}" = true ] && { showQuestions; return }
