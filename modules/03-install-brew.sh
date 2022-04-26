@@ -231,6 +231,7 @@ function tapHomebrewCaskFonts() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Install System Homebrew'
   createHomebrewUserIfNeccessary || return 10
   indicateActivity ensureUserIsInAdminGroup,${homebrew_username} 'Ensure Homebrew user is in admin group' || return 11
   indicateActivity ensureUserCannotRunSudo,${homebrew_username} 'Ensure Homebrew user can not run sudo' || return 12

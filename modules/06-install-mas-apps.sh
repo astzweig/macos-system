@@ -9,6 +9,7 @@ function installMASApp() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Install Mac AppStore Apps'
   installMASApp Keka 470158793
 
   if ! isDebug; then

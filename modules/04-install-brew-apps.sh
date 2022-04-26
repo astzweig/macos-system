@@ -88,6 +88,7 @@ function installBrews() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Install Homebrew Applications'
   pushd -q /
   installBrews
   installCasks

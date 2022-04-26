@@ -91,6 +91,7 @@ function enableLaunchDaemon() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Configure Microsoft Keyremapper'
   local serviceName='de.astzweig.macos.launchdaemons.keymapper'
   local dstDir='/usr/local/bin'
   local xpcConsumerPath="${dstDir}/astzweig-xpc-consumer"

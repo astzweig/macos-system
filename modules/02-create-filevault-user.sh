@@ -175,6 +175,7 @@ function allowOnlyFileVaultUserToUnlock() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Setup FileVault System'
   checkSecureTokenForUser "${secure_token_user_username}" || { lop -- -e 'The provided secure token user has no secure token.'; return 10 }
   checkSecureTokenUserPassword || { lop -- -e 'The secure token user password is incorrect.'; return 11 }
   convertPathToDefaultPicture

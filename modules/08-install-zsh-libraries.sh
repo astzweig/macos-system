@@ -21,6 +21,7 @@ function modifyGlobalFpath() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Install ZSh Libraries'
   local libDir=/usr/local/share/zsh/site-functions
   local libs=()
   ensurePathOrLogError ${libDir} 'Could not install zsh libraries.' || return 10

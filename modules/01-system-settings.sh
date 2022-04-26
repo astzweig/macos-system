@@ -43,7 +43,6 @@ function setComputerName() {
 
 function configureComputerHostname() {
   local currentComputerName="`scutil --get ComputerName`"
-  lop -y h1 -- -i 'Configure Computer Hostname'
   if [[ "${currentComputerName}" != "${hostname}" ]]; then
     lop -- -i 'Hostname of computer has not been set.' -i "Will set to ${hostname}."
     indicateActivity -- setComputerName 'Setting computer name'
@@ -103,6 +102,7 @@ function configureLoginWindow() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Configure System Settings'
   quitSystemPreferences
   configureComputerHostname
   configureBasicSystem

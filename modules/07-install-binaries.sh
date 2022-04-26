@@ -8,7 +8,6 @@ function ensureRightAccess() {
 }
 
 function copyUtilityBinaries() {
-  lop -y h1 -- -i 'Installing utility binaries'
   for file in ${_DIR}/../bin/*; do
     indicateActivity cp,${file},${dstDir} "Copying ${file##*/}"
     ensureRightAccess ${file}
@@ -24,6 +23,7 @@ function installDocopts() {
 }
 
 function configure_system() {
+  lop -y h1 -- -i 'Install Utility Binaries'
   local dstDir='/usr/local/bin'
   ensurePathOrLogError ${dstDir} 'Could not install binaries.' || return 10
   installDocopts
