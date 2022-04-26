@@ -79,25 +79,29 @@ function showQuestions() {
 }
 
 function module_main() {
-  local cmdName=${1:t}
+  local cmdPath=${1} cmdName=${1:t} hookBag=()
   local -A traps=()
+  preCommandNameHook "$@" || return
   shift
   autoloadZShLib || return
+  preHelpHook "$@" || return
   checkHelpPrerequisites || return
   configureLogging
   trap 'traps call int; return 70' INT
   trap 'traps call term; return 80' TERM
   trap 'traps call exit' EXIT
   eval "`getUsage $cmdName | docopts -f -V - -h - : "$@"`"
+  preQuestionHook "$@" || return
   checkQuestionsPrerequisites || return
   [ "${show_questions}" = true ] && { showQuestions; return }
+  preExecHook "$@" || return
   checkExecPrerequisites || return
   configure_system
 }
 
 function {
   local name
-  for name in getQuestionsPrerequisites getExecPrerequisites getQuestions getUsage; do
+  for name in preCommandNameHook preHelpHook preQuestionHook preExecHook getQuestionsPrerequisites getExecPrerequisites getQuestions getUsage; do
     whence ${name} >&! /dev/null || function $_() {}
   done
 }
