@@ -225,10 +225,17 @@ function getQuestions() {
     'i: filevault-fullname=What shall the FileVault user'\''s full name be? # '"${defaultFullnameHint}"
     'i: filevault-username=What shall the FileVault user'\''s username be? # '"${defaultUsernameHint}"
     'p: filevault-password=What shall the FileVault user'\''s password be?'
-    's: filevault-picture=Select a picture for FileVault user or enter the path to your own picture # validator:isPathToPicture;choose from:'"${(j.,.)defaultUserPictures};"
+    's: filevault-picture=Select a picture for FileVault user or enter the path to your own picture # validator:'"${cmdPath}"',is-picture;choose from:'"${(j.,.)defaultUserPictures};"
     's: secure-token-user-username=Which user with a secure token shall be used? # choose from:'"${(j.,.)secureTokenUsers};"
     'p: secure-token-user-password=What is the secure token user'\''s password?'
   )
+}
+
+function preQuestionHook() {
+  if [[ "${is_picture}" = true ]]; then
+    isPathToPicture ${pathstr}
+    exit $?
+  fi
 }
 
 function getUsage() {
@@ -241,6 +248,7 @@ function getUsage() {
   read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
+	  $cmdName is-picture <pathstr>
 	  $cmdName [-v] [-d FILE] --filevault-fullname NAME --filevault-username NAME --filevault-password PASSWORD --filevault-picture PATH_TO_PIC --secure-token-user-username NAME --secure-token-user-password PASSWORD
 	
 	Create a designated FileVault user who may not login to the system but is the
