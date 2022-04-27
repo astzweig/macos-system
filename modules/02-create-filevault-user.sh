@@ -93,7 +93,7 @@ function doesFileVaultUserExist() {
 function _createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
   lop -- -d 'Creating FileVault user' -d "${un}"
-  sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}" > /dev/null 2>&1
+  sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}"
   lop -- -d 'Return value of sysadminctl is ' -d "$?"
   return 0
 }
@@ -116,7 +116,7 @@ function configureFileVaultUser() {
 function configureSecureToken() {
   local un=${filevault_username} up=${filevault_password}
   local stun=${secure_token_user_username} stup=${secure_token_user_password}
-  sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}" >&! /dev/null
+  sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}"
 }
 
 function canUserUnlockDisk() {
@@ -152,7 +152,7 @@ function _allowOrEnableDiskUnlock() {
 <string>${password}</string>
 </dict>
 </plist>
-" | fdesetup "${verb}" -inputplist 2> /dev/null
+" | fdesetup "${verb}" -inputplist
 }
 
 function allowOrEnableDiskUnlock() {
