@@ -93,7 +93,7 @@ function doesFileVaultUserExist() {
 function _createFileVaultUser() {
   local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
   lop -- -d 'Creating FileVault user' -d "${un}"
-  sysadminctl -addUser "${un}" -fullName "${fn}" -shell /usr/bin/false -home '/var/empty' -password "${pw}"
+  sysadminctl -addUser ${un} -fullName ${fn} -shell /usr/bin/false -home /var/empty -password ${pw} -picture ${filevault_picture}
   lop -- -d 'Return value of sysadminctl is ' -d "$?"
   return 0
 }
@@ -106,7 +106,6 @@ function _configureFileVaultUser() {
   local un=${filevault_username}
   dscl . -create "/Users/${un}" IsHidden 1
   chsh -s /usr/bin/false "${un}" >&! /dev/null
-  setPictureForUser "${un}" "${filevault_picture}"
 }
 
 function configureFileVaultUser() {
@@ -116,7 +115,7 @@ function configureFileVaultUser() {
 function configureSecureToken() {
   local un=${filevault_username} up=${filevault_password}
   local stun=${secure_token_user_username} stup=${secure_token_user_password}
-  sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}"
+  sysadminctl -secureTokenOn ${un} -password ${up} -adminUser ${stun} -adminPassword "${stup}"
 }
 
 function canUserUnlockDisk() {
@@ -125,14 +124,6 @@ function canUserUnlockDisk() {
     [ "${fdeuser}" = "${username}" ] && return
   done
   return -1
-}
-
-function setPictureForUser() {
-  local username="${1}"
-  local image="${2}"
-  dscl . delete "/Users/${username}" JPEGPhoto >&! /dev/null
-  dscl . delete "/Users/${username}" Picture >&! /dev/null
-  dscl . create "/Users/${username}" Picture "${image}"
 }
 
 function _allowOrEnableDiskUnlock() {
