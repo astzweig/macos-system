@@ -45,8 +45,8 @@ function generateModuleOptions() {
 function filterPasswordOptions() {
   local opt= hide=false
   for opt in ${moduleOptions}; do
-    [[ $opt =~ ^--?.*password ]] && hide=true
     [[ ${hide} = true ]] && { opt='******'; hide=false }
+    [[ $opt =~ ^--?.*password ]] && hide=true
     filteredOptions+=($opt)
   done
 }
