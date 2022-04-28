@@ -26,8 +26,8 @@ function configure_system() {
   local libs=()
   ensurePathOrLogError ${libDir} 'Could not install zsh libraries.' || return 10
   lop -- -d "ASTZWEIG_ZSHLIB is ${ASTZWEIG_ZSHLIB}"
-  indicateActivity installZshlib 'Install zshlib'
-  indicateActivity modifyGlobalFpath 'Modify global fpath'
+  indicateActivity 'Install zshlib' installZshlib
+  indicateActivity 'Modify global fpath' modifyGlobalFpath
 }
 
 function getExecPrerequisites() {

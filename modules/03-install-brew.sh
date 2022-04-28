@@ -47,7 +47,7 @@ function createHomebrewUser() {
 function createHomebrewUserIfNeccessary() {
   if ! doesUserExist ${homebrew_username}; then
     lop -y body:warn -y body -- -i "No Homebrew user named ${homebrew_username} found." -i 'Will create user.'
-    indicateActivity createHomebrewUser,${homebrew_username} 'Creating Homebrew user' || return 10
+    indicateActivity 'Creating Homebrew user' createHomebrewUser ${homebrew_username} || return 10
   else
     lop -y body:note -y body -- -i "Homebrew user named ${homebrew_username} already exists." -i 'Skipping.'
   fi
@@ -122,10 +122,10 @@ function configureInstallPrefix() {
   local dirPath=$1
   if [[ -d "${dirPath}" ]]; then
     lop -y body -- -d "Install prefix at ${dirPath} already exists. Will correct permissions of possible enclosed folders."
-    indicateActivity fixInstallPrefixPermissions 'Correct permissions of possible enclosed folders'
+    indicateActivity 'Correct permissions of possible enclosed folders' fixInstallPrefixPermissions
   else
     lop -y body -- -d "Install prefix at ${dirPath} does not exist. Will create it."
-    indicateActivity createInstallPrefix 'Creating install prefix'
+    indicateActivity 'Creating install prefix' createInstallPrefix
   fi
 }
 
@@ -233,18 +233,18 @@ function tapHomebrewCaskFonts() {
 function configure_system() {
   lop -y h1 -- -i 'Install System Homebrew'
   createHomebrewUserIfNeccessary || return 10
-  indicateActivity ensureUserIsInAdminGroup,${homebrew_username} 'Ensure Homebrew user is in admin group' || return 11
-  indicateActivity ensureUserCannotRunSudo,${homebrew_username} 'Ensure Homebrew user can not run sudo' || return 12
+  indicateActivity 'Ensure Homebrew user is in admin group' ensureUserIsInAdminGroup ${homebrew_username} || return 11
+  indicateActivity 'Ensure Homebrew user can not run sudo' ensureUserCannotRunSudo ${homebrew_username} || return 12
   configureInstallPrefix ${homebrew_prefix} || return 13
   ensureHomebrewCacheDirectory || return 14
   ensureHomebrewLogDirectory || return 15
-  indicateActivity downloadHomebrew 'Downloading Homebrew' || return 16
-  indicateActivity createBrewCallerScript 'Create brew caller script' || return 17
-  indicateActivity installHomebrewCore 'Install Homebrew core' || return 18
-  indicateActivity installHomebrewUpdater 'Install Homebrew updater' || return 19
+  indicateActivity 'Downloading Homebrew' downloadHomebrew || return 16
+  indicateActivity 'Create brew caller script' createBrewCallerScript || return 17
+  indicateActivity 'Install Homebrew core' installHomebrewCore || return 18
+  indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 19
   pushd -q /
-  indicateActivity tapHomebrewCask 'Tapping homebrew/cask' || return 20
-  indicateActivity tapHomebrewCaskFonts 'Tapping homebrew/cask-fonts' || return 21
+  indicateActivity 'Tapping homebrew/cask' tapHomebrewCask || return 20
+  indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts || return 21
   popd -q
 }
 

@@ -9,7 +9,7 @@ function ensureRightAccess() {
 
 function copyUtilityBinaries() {
   for file in ${_DIR}/../bin/*; do
-    indicateActivity cp,${file},${dstDir} "Copying ${file##*/}"
+    indicateActivity "Copying ${file##*/}" cp ${file} ${dstDir}
     ensureRightAccess ${file}
   done
 }
@@ -17,7 +17,7 @@ function copyUtilityBinaries() {
 function installDocopts() {
   local destPath='/usr/local/bin/docopts'
   [[ -x ${destPath} ]] && return
-  indicateActivity curl,--output,${destPath},-fsSL,"${docopts_url}" 'Downloading docpts' || return
+  indicateActivity 'Downloading docpts' curl --output ${destPath} -fsSL ${docopts_url} || return
   chown root:admin ${destPath}
   chmod 755 ${destPath}
 }

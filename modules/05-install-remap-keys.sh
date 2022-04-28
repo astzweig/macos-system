@@ -98,10 +98,10 @@ function configure_system() {
   local remapKeysPath="${dstDir}/remap-keys"
   local launchDaemonPath="/Library/LaunchDaemons/${serviceName}.plist"
   ensurePathOrLogError ${dstDir} 'Could not install remap-keys.' || return 10
-  [[ -x ${remapKeysPath} ]] || indicateActivity createRemapKeysBinary 'Create remap-keys executable'
+  [[ -x ${remapKeysPath} ]] || indicateActivity -- 'Create remap-keys executable' createRemapKeysBinary
   [[ -x ${xpcConsumerPath} ]] || createXPCConsumer 'Create XPC event consuer'
   [[ -f ${launchDaemonPath} ]] || createLaunchDaemon 'Create Launch Daemon'
-  indicateActivity enableLaunchDaemon 'Enable Launch Daemon'
+  indicateActivity -- 'Enable Launch Daemon' enableLaunchDaemon
 }
 
 function getExecPrerequisites() {

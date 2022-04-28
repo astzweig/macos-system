@@ -20,12 +20,15 @@ function getDefaultUsername() {
   print "${username}"
 }
 
+function isAPFSFilesystem() {
+  [[ $(diskutil info / | awk 'sub(/File System Personality: /,""){print $0}') = *APFS* ]]
+}
+
 function getUsersWithSecureToken() {
-  local username
-  for username in ${(f)"$(dscl . -list /Users | grep -v '^_.*')"}; do
-    indicateActivity -- checkSecureTokenForUser,${username} \
-      "Checking if user ${username} has a secure token set" && \
-      secureTokenUsers+=("${username}")
+  local username uuid
+  for uuid in ${$(diskutil apfs listUsers / | awk '/\+\-\-/ {print $2}')}; do
+    username="$(dscl . -search /Users GeneratedUID ${uuid} | awk 'NR==1{print $1}')"
+    checkSecureTokenForUser ${username} && secureTokenUsers+=("${username}")
   done
 }
 
@@ -35,7 +38,7 @@ function getDefaultUserPictures() {
   popd -q
 }
 
-function _convertPathToDefaultPicture() {
+function convertPathToDefaultPicture() {
   local resolved=''
   lop -- -d 'Converting path' -d "${filevault_picture}" -d 'to default picture path if necessary.'
   if [ -r "${filevault_picture}" ]; then
@@ -49,10 +52,6 @@ function _convertPathToDefaultPicture() {
   [ -n "${resolved}" -a -r "${resolved}" ] && filevault_picture="${resolved}"
 }
 
-function convertPathToDefaultPicture() {
-  indicateActivity -- _convertPathToDefaultPicture "Resolving path of picture ${filevault_picture}"
-}
-
 function _isPathToPicture() {
   local filevault_picture=$1
   convertPathToDefaultPicture
@@ -61,7 +60,7 @@ function _isPathToPicture() {
 }
 
 function isPathToPicture() {
-  indicateActivity -- _isPathToPicture,$1 "Verifying $1 as picture path"
+  indicateActivity -- "Verifying $1 as picture path" _isPathToPicture $1
 }
 
 function _checkSecureTokenForUser() {
@@ -71,15 +70,20 @@ function _checkSecureTokenForUser() {
 
 function checkSecureTokenForUser() {
   local u=$1
-  indicateActivity -- _checkSecureTokenForUser,$u "Checking if user $u has a secure token set"
+  indicateActivity -- "Checking if user $u has a secure token set" _checkSecureTokenForUser $u
 }
 
-function _checkSecureTokenUserPassword() {
-  dscl . -authonly "${secure_token_user_username}" "${secure_token_user_password}" >&! /dev/null
+function _checkUserPassword() {
+  local username=$1 password=$2
+  dscl . -authonly ${username} ${password} >&! /dev/null
 }
 
 function checkSecureTokenUserPassword() {
-  indicateActivity -- _checkSecureTokenUserPassword "Checking secure token password for user ${secure_token_user_username}"
+  indicateActivity -- "Checking password for user ${secure_token_user_username}" _checkUserPassword ${secure_token_user_username} ${secure_token_user_password}
+}
+
+function checkFileVaultUserPassword() {
+  indicateActivity -- "Checking password for user ${filevault_username}" _checkUserPassword ${filevault_username} ${filevault_password}
 }
 
 function _doesFileVaultUserExist() {
@@ -87,19 +91,20 @@ function _doesFileVaultUserExist() {
 }
 
 function doesFileVaultUserExist() {
-  indicateActivity -- _doesFileVaultUserExist "Checking if ${filevault_username} already exists"
+  indicateActivity -- "Checking if ${filevault_username} already exists" _doesFileVaultUserExist
 }
 
 function _createFileVaultUser() {
-  local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password}
+  local un=${filevault_username} fn=${filevault_fullname} pw=${filevault_password} result=
   lop -- -d 'Creating FileVault user' -d "${un}"
   sysadminctl -addUser ${un} -fullName ${fn} -shell /usr/bin/false -home /var/empty -password ${pw} -picture ${filevault_picture}
+  result=$?
   lop -- -d 'Return value of sysadminctl is ' -d "$?"
-  return 0
+  return $result
 }
 
 function createFileVaultUser() {
-  indicateActivity -- _createFileVaultUser "Creating FileVault user ${filevault_username}"
+  indicateActivity -- "Creating FileVault user ${filevault_username}" _createFileVaultUser
 }
 
 function _configureFileVaultUser() {
@@ -109,73 +114,86 @@ function _configureFileVaultUser() {
 }
 
 function configureFileVaultUser() {
-  indicateActivity -- _configureFileVaultUser "Configuring FileVault user ${filevault_username}"
+  indicateActivity -- "Configuring FileVault user ${filevault_username}" _configureFileVaultUser
 }
 
 function configureSecureToken() {
   local un=${filevault_username} up=${filevault_password}
   local stun=${secure_token_user_username} stup=${secure_token_user_password}
-  sysadminctl -secureTokenOn ${un} -password ${up} -adminUser ${stun} -adminPassword "${stup}"
+  sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}"
 }
 
 function canUserUnlockDisk() {
   local username=$1
   for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
-    [ "${fdeuser}" = "${username}" ] && return
+    [[ ${fdeuser} = ${username} ]] && return
   done
-  return -1
+  return 1
 }
 
-function _allowOrEnableDiskUnlock() {
-  local username="${1}" password="${2}" verb=enable
-  if fdesetup isactive >&! /dev/null; then
-    verb=add
-    canUserUnlockDisk "${username}" && return
-  fi
-  echo "
-  <?xml version="1.0" encoding=\"UTF-8\"?>
-<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
-<dict>
-<key>Username</key>
-<string>${username}</string>
-<key>Password</key>
-<string>${password}</string>
-</dict>
-</plist>
-" | fdesetup "${verb}" -inputplist
+function getFDESetupXMLForUser() {
+  local username="${1}" password="${2}"
+  cat <<- XML
+	<?xml version="1.0" encoding=\"UTF-8\"?>
+	<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+	<plist version=\"1.0\">
+	<dict>
+	<key>Username</key>
+	<string>${username}</string>
+	<key>Password</key>
+	<string>${password}</string>
+	</dict>
+	</plist>
+	XML
 }
 
-function allowOrEnableDiskUnlock() {
-  local un="${1}" pw="${2}" action='Activate FileVault and allow'
-  fdesetup isactive >&! /dev/null && action='Allow'
-  indicateActivity -- _allowOrEnableDiskUnlock,$un,$pw "${action} ${un} to unlock disk"
+function _enableFileVaultForSecureTokenUser() {
+  local username="${1}" password="${2}"
+  getFDESetupXMLForUser "${username}" "${password}" | fdesetup enable -inputplist
+}
+
+function enableFileVaultForSecureTokenUser() {
+  fdesetup isactive >&! /dev/null && return
+  indicateActivity -- "Enable FileVault for secure token" _enableFileVaultForSecureTokenUser ${secure_token_user_username} ${secure_token_user_password}
+}
+
+function _allowUserToUnlockDisk() {
+  local username="${1}" password="${2}"
+  getFDESetupXMLForUser ${username} ${password} | fdesetup add -inputplist
+}
+
+function allowFileVaultUserToUnlockDisk() {
+  indicateActivity -- "Allow FileVault user to unlock disk" _allowUserToUnlockDisk ${filevault_username} ${filevault_password}
 }
 
 function _allowOnlyFileVaultUserToUnlock() {
-  local username="${1}"
   local fdeuser
   for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
-    [ "${fdeuser}" != "${username}" ] && fdesetup remove -user "${fdeuser}"
+   [[ ${fdeuser} != ${filevault_username} ]] && fdesetup remove -user "${fdeuser}"
   done
   return 0
 }
 
 function allowOnlyFileVaultUserToUnlock() {
-  indicateActivity -- _allowOnlyFileVaultUserToUnlock,$1 "Disallow everyone else from unlocking disk"
+  indicateActivity -- "Disallow everyone else from unlocking disk" _allowOnlyFileVaultUserToUnlock
 }
 
 function configure_system() {
   lop -y h1 -- -i 'Setup FileVault System'
   checkSecureTokenForUser "${secure_token_user_username}" || { lop -- -e 'The provided secure token user has no secure token.'; return 10 }
   checkSecureTokenUserPassword || { lop -- -e 'The secure token user password is incorrect.'; return 11 }
-  convertPathToDefaultPicture
+  indicateActivity -- "Resolving path of picture ${filevault_picture}" convertPathToDefaultPicture
   isPathToPicture "${filevault_picture}" || { lop -- -e 'The provided FileVault user picture is not a valid path to a TIF, PNG or JPEG file.'; return 12 }
 
-  doesFileVaultUserExist || createFileVaultUser
+  if doesFileVaultUserExist; then
+    checkFileVaultUserPassword || { lop -- -e 'The FileVault user password is incorrect.'; return 13 }
+  else
+    createFileVaultUser
+  fi
   configureFileVaultUser
+  enableFileVaultForSecureTokenUser
   checkSecureTokenForUser "${filevault_username}" || configureSecureToken
-  allowOrEnableDiskUnlock "${filevault_username}" "${filevault_password}"
+  canUserUnlockDisk ${filevault_username} || allowFileVaultUserToUnlockDisk
   allowOnlyFileVaultUserToUnlock "${filevault_username}"
 }
 
@@ -191,13 +209,18 @@ function getQuestionsPrerequisites() {
   cmds=(
     [find]=''
     [dscl]=''
+    [dseditgroup]=''
+    [awk]=''
+    [diskutil]=''
     [sysadminctl]=''
   )
+  isAPFSFilesystem || { lop -- -e 'This module requires an APFS filesystem.'; return 10 }
 }
 
 function getExecPrerequisites() {
   cmds=(
     [cut]=''
+    [cat]=''
     [fdesetup]=''
     [base64]=''
     [dsimport]=''

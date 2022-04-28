@@ -30,28 +30,28 @@ function getQuestions() {
 }
 
 function quitSystemPreferences() {
- indicateActivity -- osascript,-e,'tell application "System Preferences" to quit' 'Quitting System Preferences'
+ indicateActivity -- 'Quitting System Preferences' osascript -e 'tell application "System Preferences" to quit'
 }
 
 function setComputerName() {
   scutil --set ComputerName "${hostname}"
   scutil --set HostName "${hostname}"
   scutil --set LocalHostName "${hostname}"
-  systemsetup -setcomputername "${hostname}" > /dev/null 2>&1
-  systemsetup -setlocalsubnetname "${hostname}" > /dev/null 2>&1
+  systemsetup -setcomputername "${hostname}"
+  systemsetup -setlocalsubnetname "${hostname}"
 }
 
 function configureComputerHostname() {
   local currentComputerName="`scutil --get ComputerName`"
   if [[ "${currentComputerName}" != "${hostname}" ]]; then
     lop -- -i 'Hostname of computer has not been set.' -i "Will set to ${hostname}."
-    indicateActivity -- setComputerName 'Setting computer name'
+    indicateActivity -- 'Set computer name' setComputerName
   else
     lop -- -i 'Hostname of computer seems to have already been set. Skipping.' -i "Hostname: $currentComputerName"
   fi
 }
 
-function _configureBasicSystem(){
+function configureBasicSystem(){
   # Disable the sound effects on boot
   nvram SystemAudioVolume=" "
 
@@ -65,11 +65,7 @@ function _configureBasicSystem(){
   systemsetup -setremoteappleevents off >&! /dev/null
 }
 
-function configureBasicSystem(){
-  indicateActivity -- _configureBasicSystem 'Configuring systemsetup and nvram'
-}
-
-function _configurePowerManagement() {
+function configurePowerManagement() {
   cmd=(pmset -a)
   ${cmd} displaysleep 0
   ${cmd} disksleep 0
@@ -77,7 +73,7 @@ function _configurePowerManagement() {
   ${cmd} womp 0
   ${cmd} acwake 0
   ${cmd} proximitywake 0
-  ${cmd} destroyfvkeyonstandby 1 > /dev/null
+  ${cmd} destroyfvkeyonstandby 1
   pmset -b acwake 1
   ${cmd} lidwake 1
   ${cmd} halfdim 1
@@ -85,11 +81,7 @@ function _configurePowerManagement() {
   ${cmd} hibernatemode 0
 }
 
-function configurePowerManagement() {
-  indicateActivity -- _configurePowerManagement 'Configuring power management'
-}
-
-function _configureLoginWindow() {
+function configureLoginWindow() {
   cmd=(defaults write '/Library/Preferences/com.apple.loginwindow')
   ${cmd} DisableFDEAutoLogin -bool true
   ${cmd} SHOWFULLNAME -bool false
@@ -97,19 +89,14 @@ function _configureLoginWindow() {
   ${cmd} GuestEnabled -bool false
 }
 
-function configureLoginWindow() {
-  indicateActivity -- _configureLoginWindow 'Configuring login window'
-}
-
 function configure_system() {
   lop -y h1 -- -i 'Configure System Settings'
   quitSystemPreferences
   configureComputerHostname
-  configureBasicSystem
-  configurePowerManagement
-  configureLoginWindow
-
-  indicateActivity -- launchctl,config,user,umask,027 'Configuring global umask'
+  indicateActivity -- 'Configuring systemsetup and nvram' configureBasicSystem
+  indicateActivity -- 'Configuring power management' configurePowerManagement
+  indicateActivity -- 'Configuring login window' configureLoginWindow
+  indicateActivity -- 'Configure global umask' launchctl config user umask 027
 }
 
 function getUsage() {

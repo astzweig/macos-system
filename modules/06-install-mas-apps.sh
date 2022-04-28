@@ -5,7 +5,7 @@ function installMASApp() {
   local currentUser="`who am i | cut -d' ' -f1`"
   local appName="$1"
   local id="$2"
-  indicateActivity sudo,-u,${currentUser},mas,install,${id} "Install ${appName} app"
+  indicateActivity "Install ${appName} app" sudo -u ${currentUser} mas install ${id}
 }
 
 function configure_system() {
