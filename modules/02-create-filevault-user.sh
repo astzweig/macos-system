@@ -120,7 +120,7 @@ function configureFileVaultUser() {
 function configureSecureToken() {
   local un=${filevault_username} up=${filevault_password}
   local stun=${secure_token_user_username} stup=${secure_token_user_password}
-  sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}"
+  indicateActivity -- "Enable secure token for ${un}" sysadminctl -secureTokenOn "${un}" -password "${up}" -adminUser "${stun}" -adminPassword "${stup}"
 }
 
 function canUserUnlockDisk() {
@@ -188,13 +188,13 @@ function configure_system() {
   if doesFileVaultUserExist; then
     checkFileVaultUserPassword || { lop -- -e 'The FileVault user password is incorrect.'; return 13 }
   else
-    createFileVaultUser
+    createFileVaultUser || { lop -- -e 'Was not able to create FileVault user.'; return 14 }
   fi
-  configureFileVaultUser
-  enableFileVaultForSecureTokenUser
-  checkSecureTokenForUser "${filevault_username}" || configureSecureToken
-  canUserUnlockDisk ${filevault_username} || allowFileVaultUserToUnlockDisk
-  allowOnlyFileVaultUserToUnlock "${filevault_username}"
+  configureFileVaultUser || { lop -- -e 'Could not configure FileVault user.'; return 15 }
+  enableFileVaultForSecureTokenUser || { lop -- -e 'Could not enable FileVault for secure token user.'; return 16 }
+  checkSecureTokenForUser "${filevault_username}" || configureSecureToken || { lop -- -e 'Could not configure secure token for FileVault user.'; return 17 }
+  canUserUnlockDisk ${filevault_username} || allowFileVaultUserToUnlockDisk || { lop -- -e 'Was not able to allow FileVault user to unlock disk.'; return 18 }
+  allowOnlyFileVaultUserToUnlock "${filevault_username}" || { lop -- -e 'Was not able to deactivate all other user from unlocking disk.'; return 19 }
 }
 
 function getHelpPrerequisites() {
