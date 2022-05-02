@@ -195,6 +195,7 @@ function configure_system() {
   checkSecureTokenForUser "${filevault_username}" || configureSecureToken || { lop -- -e 'Could not configure secure token for FileVault user.'; return 17 }
   canUserUnlockDisk ${filevault_username} || allowFileVaultUserToUnlockDisk || { lop -- -e 'Was not able to allow FileVault user to unlock disk.'; return 18 }
   allowOnlyFileVaultUserToUnlock "${filevault_username}" || { lop -- -e 'Was not able to deactivate all other user from unlocking disk.'; return 19 }
+  indicateActivity -- 'Update APFS preboot volume' diskutil apfs updatePreboot / || { lop -- -e 'Was not able to update APFS preboot volume.'; return 20 }
 }
 
 function getHelpPrerequisites() {
