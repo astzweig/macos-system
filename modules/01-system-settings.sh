@@ -16,6 +16,7 @@ function getExecPrerequisites() {
     [nvram]=''
     [pmset]=''
     [defaults]=''
+    [/usr/libexec/ApplicationFirewall/socketfilterfw]=''
     [launchctl]=''
   )
 }
@@ -89,6 +90,15 @@ function configureLoginWindow() {
   ${cmd} GuestEnabled -bool false
 }
 
+function configureMacOSFirewall() {
+  cmd=(/usr/libexec/ApplicationFirewall/socketfilterfw)
+  ${cmd} --setglobalstate on
+  ${cmd} --setblockall off
+  ${cmd} --setstealthmode on
+  ${cmd} --setallowsigned on
+  ${cmd} --setallowsignedapp on
+}
+
 function configure_system() {
   lop -y h1 -- -i 'Configure System Settings'
   quitSystemPreferences
@@ -97,6 +107,7 @@ function configure_system() {
   indicateActivity -- 'Configuring power management' configurePowerManagement
   indicateActivity -- 'Configuring login window' configureLoginWindow
   indicateActivity -- 'Configure global umask' launchctl config user umask 027
+  indicateActivity -- 'Configure macOS firewall' configureMacOSFirewall
 }
 
 function getUsage() {
