@@ -224,15 +224,15 @@ function installHomebrewUpdater() {
 }
 
 function tapHomebrewCask() {
-  brew tap homebrew/cask ${git_homebrew_cask_remote} >&! /dev/null
+  ${homebrew_prefix}/bin/brew tap homebrew/cask ${git_homebrew_cask_remote} >&! /dev/null
 }
 
 function tapHomebrewCaskFonts() {
-  brew tap homebrew/cask-fonts ${git_homebrew_font_remote} >&! /dev/null
+  ${homebrew_prefix}/bin/brew tap homebrew/cask-fonts ${git_homebrew_font_remote} >&! /dev/null
 }
 
 function tapHomebrewCaskDrivers() {
-  brew tap homebrew/cask-drivers ${git_homebrew_driver_remote} >&! /dev/null
+  ${homebrew_prefix}/bin/brew tap homebrew/cask-drivers ${git_homebrew_driver_remote} >&! /dev/null
 }
 
 function configure_system() {
