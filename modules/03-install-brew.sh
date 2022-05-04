@@ -140,7 +140,7 @@ function createInstallPrefix() {
 
 function downloadHomebrew() {
   cd "${homebrew_prefix}/Homebrew" > /dev/null || return 10
-  [ -d ".git" ] && return 11
+  [ -d ".git" ] && return
   runAsHomebrewUser git init -q
   runAsHomebrewUser git config remote.origin.url "${git_homebrew_remote}"
   runAsHomebrewUser git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
@@ -191,6 +191,7 @@ function createLaunchDaemonsPlist() {
   local username=${homebrew_username}
   local launcherName="de.astzweig.macos.launchdaemons.$1"
   local launcherPath="/Library/LaunchDaemons/${launcherName}.plist"
+  [[ -f $launcherPath ]] && return
   local brewCommand="$2"
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -230,6 +231,10 @@ function tapHomebrewCaskFonts() {
   brew tap homebrew/cask-fonts ${git_homebrew_font_remote} >&! /dev/null
 }
 
+function tapHomebrewCaskDrivers() {
+  brew tap homebrew/cask-drivers ${git_homebrew_driver_remote} >&! /dev/null
+}
+
 function configure_system() {
   lop -y h1 -- -i 'Install System Homebrew'
   createHomebrewUserIfNeccessary || return 10
@@ -245,6 +250,7 @@ function configure_system() {
   pushd -q /
   indicateActivity 'Tapping homebrew/cask' tapHomebrewCask || return 20
   indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts || return 21
+  indicateActivity 'Tapping homebrew/cask-drivers' tapHomebrewCaskDrivers || return 22
   popd -q
 }
 
@@ -296,6 +302,10 @@ function getDefaultGitHomebrewCaskFontsURL() {
   print -- ${HOMEBREW_BREW_CASK_FONTS_GIT_REMOTE:-https://github.com/Homebrew/homebrew-cask-fonts.git}
 }
 
+function getDefaultGitHomebrewCaskDriversURL() {
+  print -- ${HOMEBREW_BREW_CASK_DRIVERS_GIT_REMOTE:-https://github.com/Homebrew/homebrew-cask-drivers.git}
+}
+
 function getQuestions() {
   questions=(
     'i: homebrew-username=What shall the Homebrew user'\''s username be? # default:'"$(getDefaultHomebrewUsername)"
@@ -306,6 +316,7 @@ function getQuestions() {
     'i: git-homebrew-core-remote=Which Git repository shall be used to install Homebrew core from? # default:'"$(getDefaultGitHomebrewCoreURL)"
     'i: git-homebrew-cask-remote=Which Git repository shall be used to install Homebrew cask from? # default:'"$(getDefaultGitHomebrewCaskURL)"
     'i: git-homebrew-font-remote=Which Git repository shall be used to install Homebrew cask-fonts from? # default:'"$(getDefaultGitHomebrewCaskFontsURL)"
+    'i: git-homebrew-driver-remote=Which Git repository shall be used to install Homebrew cask-drivers from? # default:'"$(getDefaultGitHomebrewCaskDriversURL)"
   )
 }
 
@@ -313,27 +324,28 @@ function getUsage() {
   read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE] --homebrew-prefix PREFIX --homebrew-username NAME --homebrew-cache PATH --homebrew-log PATH --git-homebrew-remote URL --git-homebrew-core-remote URL --git-homebrew-cask-remote URL --git-homebrew-font-remote URL
+	  $cmdName [-v] [-d FILE] --homebrew-prefix PREFIX --homebrew-username NAME --homebrew-cache PATH --homebrew-log PATH --git-homebrew-remote URL --git-homebrew-core-remote URL --git-homebrew-cask-remote URL --git-homebrew-font-remote URL --git-homebrew-driver-remote URL
 	
 	Create a designated Homebrew user who may not login to the system but is the
 	only one able to install homebrew software systemwide. Install Homebrew at
 	given PREFIX and make the new Homebrew user the owner of that.
 	
 	Options:
-	  --homebrew-prefix PREFIX        Path to folder that shall be the prefix of
-	                                  the system wide Homebrew installation [default: $(getDefaultHomebrewPrefix)].
-	  --git-homebrew-remote URL       Git URL to the Homebrew repository [default: $(getDefaultGitHomebrewURL)].
-	  --git-homebrew-core-remote URL  Git URL to the Homebrew core repository [default: $(getDefaultGitHomebrewCoreURL)].
-	  --git-homebrew-cask-remote URL  Git URL to the Homebrew cask repository [default: $(getDefaultGitHomebrewCaskURL)].
-	  --git-homebrew-font-remote URL  Git URL to the Homebrew cask-fonts repository [default: $(getDefaultGitHomebrewCaskFontsURL)].
-	  --homebrew-cache PATH           Path to folder that shall be used as the
-	                                  cache for Homebrew [default: $(getDefaultHomebrewCachePath)].
-	  --homebrew-log PATH             Path to folder that shall be used as the log
-	                                  directory for Homebrew [default: $(getDefaultHomebrewLogPath)].
-	  --homebrew-username NAME        Username of the designated Homebrew user.
-	                                  [default: $(getDefaultHomebrewUsername)].
-	  -d FILE, --logfile FILE         Print log message to logfile instead of stdout.
-	  -v, --verbose                   Be more verbose.
+	  --homebrew-prefix PREFIX          Path to folder that shall be the prefix of
+	                                    the system wide Homebrew installation [default: $(getDefaultHomebrewPrefix)].
+	  --git-homebrew-remote URL         Git URL to the Homebrew repository [default: $(getDefaultGitHomebrewURL)].
+	  --git-homebrew-core-remote URL    Git URL to the Homebrew core repository [default: $(getDefaultGitHomebrewCoreURL)].
+	  --git-homebrew-cask-remote URL    Git URL to the Homebrew cask repository [default: $(getDefaultGitHomebrewCaskURL)].
+	  --git-homebrew-font-remote URL    Git URL to the Homebrew cask-fonts repository [default: $(getDefaultGitHomebrewCaskFontsURL)].
+	  --git-homebrew-driver-remote URL  Git URL to the Homebrew cask-drivers repository [default: $(getDefaultGitHomebrewCaskDriversURL)].
+	  --homebrew-cache PATH             Path to folder that shall be used as the
+	                                    cache for Homebrew [default: $(getDefaultHomebrewCachePath)].
+	  --homebrew-log PATH               Path to folder that shall be used as the log
+	                                    directory for Homebrew [default: $(getDefaultHomebrewLogPath)].
+	  --homebrew-username NAME          Username of the designated Homebrew user.
+	                                    [default: $(getDefaultHomebrewUsername)].
+	  -d FILE, --logfile FILE           Print log message to logfile instead of stdout.
+	  -v, --verbose                     Be more verbose.
 	----
 	$cmdName 0.1.0
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
