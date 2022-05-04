@@ -248,9 +248,9 @@ function configure_system() {
   indicateActivity 'Install Homebrew core' installHomebrewCore || return 18
   indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 19
   pushd -q /
-  indicateActivity 'Tapping homebrew/cask' tapHomebrewCask || return 20
-  indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts || return 21
-  indicateActivity 'Tapping homebrew/cask-drivers' tapHomebrewCaskDrivers || return 22
+  indicateActivity 'Tapping homebrew/cask' tapHomebrewCask
+  indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts
+  indicateActivity 'Tapping homebrew/cask-drivers' tapHomebrewCaskDrivers
   popd -q
 }
 
