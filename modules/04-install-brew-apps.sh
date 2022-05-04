@@ -82,7 +82,6 @@ function installCasks() {
   installCask rectangle-pro
   if ! isDebug; then
     installCask little-snitch
-    installCask pdfpenpro
     installCask sketch
     installCask synology-drive
     installCask unpkg
