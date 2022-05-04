@@ -51,18 +51,28 @@ function installParallels() {
   [ -x "${inittoolPath}" ] && indicateActivity -- 'Running Parallels inittool'  ${inittoolPath}  init 
 }
 
-function installAdobeAcrobatPro() {
-  [[ -d '/Applications/Adobe Acrobat DC' ]] && return
-  indicateActivity -- "Download Adobe Acrobat Pro" ${homebrew_path} fetch --cask adobe-acrobat-pro || return
-  local dmgPath="$(${homebrew_path} --cache --cask adobe-acrobat-pro)"
-  local tmpd="$(mktemp -d -t 'adobe-acrobat')"
+function installDMGedBrewCaskPackage() {
+  local appName=$1 caskToken=$2 packagePattern=$3 target=${4:-LocalSystem}
+  indicateActivity -- "Download ${appName}" ${homebrew_path} fetch --cask ${caskToken} || return 10
+  local dmgPath="$(${homebrew_path} --cache --cask ${caskToken})"
+  local tmpd="$(mktemp -d -t ${caskToken})"
   pushd -q $tmpd
   hdiutil attach $dmgPath -nobrowse -readonly -mountpoint $tmpd || return
   traps add detach-mount "find '${tmpd}' -type d -mindepth 1 -maxdepth 1 -exec hdiutil detach {} \; >&! /dev/null"
   trap "popd -q; traps call exit; rm -fr '${tmpd}'; traps remove detach-mount" EXIT
-  local pkg="$(find $tmpd -name '*Installer.pkg' | head -n1)"
+  local pkg="$(find $tmpd -name ${packagePattern} | head -n1)"
   [[ -n $pkg ]] || return
-  indicateActivity -- 'Install Adobe Acrobat Pro' installer -package $pkg -target LocalSystem
+  indicateActivity -- "Install ${appName}" installer -package $pkg -target $target
+}
+
+function installAdobeAcrobatPro() {
+  [[ -d '/Applications/Adobe Acrobat DC' ]] && return
+  installDMGedBrewCaskPackage 'Adobe Acrobat Pro' adobe-acrobat-pro '*Installer.pkg'
+}
+
+function installSFSymbols() {
+  [[ -d '/Applications/SF Symbols.app' ]] && return
+  installDMGedBrewCaskPackage 'SF Symbols' sf-symbols 'SF Symbols.pkg'
 }
 
 function installCasks() {
@@ -76,7 +86,7 @@ function installCasks() {
     installCask sketch
     installCask synology-drive
     installCask unpkg
-    installCask sf-symbols
+    installSFSymbols
   fi
 }
 
