@@ -4,7 +4,7 @@
 function brewInstall() {
   local identifier="$1"
   local cask="${2:+--cask}"
-  indicateActivity -- "Installing ${identifier} ${cask:+ (Cask)}" ${homebrew_path} install -q ${cask} ${identifier}
+  indicateActivity -- "Installing ${identifier}${cask:+ (Cask)}" ${homebrew_path} install -q ${cask} ${identifier}
 }
 
 function installCask() {
@@ -45,6 +45,7 @@ function patchParallels() {
 
 function installParallels() {
   local inittoolPath='/Applications/Parallels Desktop.app/Contents/MacOS/inittool'
+  [[ -f "${inittoolPath}" ]] && return
   indicateActivity -- 'Patching Parallels' patchParallels || return 0
   installCask parallels
   [ -x "${inittoolPath}" ] && indicateActivity -- 'Running Parallels inittool'  ${inittoolPath}  init 
