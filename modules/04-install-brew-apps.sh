@@ -75,6 +75,10 @@ function installSFSymbols() {
   installDMGedBrewCaskPackage 'SF Symbols' sf-symbols 'SF Symbols.pkg'
 }
 
+function installSynologyDrive() {
+  installDMGedBrewCaskPackage 'Synology Drive' synology-drive '*Synology Drive Client.pkg'
+}
+
 function installCasks() {
   lop -y body:h1 -- -i 'Installing Homebrew casks'
   installParallels
@@ -83,8 +87,8 @@ function installCasks() {
   if ! isDebug; then
     installCask little-snitch
     installCask sketch
-    installCask synology-drive
     installCask unpkg
+    installSynologyDrive
     installSFSymbols
   fi
 }
