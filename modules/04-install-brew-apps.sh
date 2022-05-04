@@ -51,9 +51,24 @@ function installParallels() {
   [ -x "${inittoolPath}" ] && indicateActivity -- 'Running Parallels inittool'  ${inittoolPath}  init 
 }
 
+function installAdobeAcrobatPro() {
+  [[ -d '/Applications/Adobe Acrobat DC' ]] && return
+  indicateActivity -- "Download Adobe Acrobat Pro" ${homebrew_path} fetch --cask adobe-acrobat-pro || return
+  local dmgPath="$(${homebrew_path} --cache --cask adobe-acrobat-pro)"
+  local tmpd="$(mktemp -d -t 'adobe-acrobat')"
+  pushd -q $tmpd
+  hdiutil attach $dmgPath -nobrowse -readonly -mountpoint $tmpd || return
+  traps add detach-mount "find '${tmpd}' -type d -mindepth 1 -maxdepth 1 -exec hdiutil detach {} \; >&! /dev/null"
+  trap "popd -q; traps call exit; rm -fr '${tmpd}'; traps remove detach-mount" EXIT
+  local pkg="$(find $tmpd -name '*Installer.pkg' | head -n1)"
+  [[ -n $pkg ]] || return
+  indicateActivity -- 'Install Adobe Acrobat Pro' installer -package $pkg -target LocalSystem
+}
+
 function installCasks() {
   lop -y body:h1 -- -i 'Installing Homebrew casks'
   installParallels
+  installAdobeAcrobatPro
   installCask rectangle-pro
   if ! isDebug; then
     installCask little-snitch
@@ -100,6 +115,10 @@ function configure_system() {
 function getExecPrerequisites() {
   cmds=(
     [brew]=''
+    [find]=''
+    [head]=''
+    [installer]=''
+    [hdiutil]=''
   )
   id -nG | grep admin >&! /dev/null || { lop -- -e 'This module requires the user to be in admin group. Please run again as either root or an admin user.'; return 11 }
   checkCommands
