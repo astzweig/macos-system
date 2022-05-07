@@ -87,6 +87,8 @@ function installCasks() {
   if ! isDebug; then
     installCask little-snitch
     installCask sketch
+    installCask setapp
+    installCask mountain-duck
     installCask unpkg
     installSynologyDrive
     installSFSymbols
