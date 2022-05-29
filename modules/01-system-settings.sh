@@ -85,7 +85,7 @@ function configurePowerManagement() {
 function configureLoginWindow() {
   cmd=(defaults write '/Library/Preferences/com.apple.loginwindow')
   ${cmd} DisableFDEAutoLogin -bool true
-  ${cmd} SHOWFULLNAME -bool false
+  ${cmd} SHOWFULLNAME -bool true
   ${cmd} AdminHostInfo -string HostName
   ${cmd} GuestEnabled -bool false
 }
