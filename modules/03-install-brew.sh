@@ -28,8 +28,10 @@ function ensureUserCannotRunSudo() {
   local username=$1
   local sudoersFile="/etc/sudoers.d/disallow-sudo-for-${username}"
   [[ -f ${sudoersFile} ]] && return
-  print -- "Defaults:${username} !authenticate
-  ${username} ALL=(ALL) !ALL" > "${sudoersFile}"
+  cat <<- SUDOERS > "${sudoersFile}"
+	Defaults:${username} !authenticate
+	${username} ALL=(ALL) !ALL
+	SUDOERS
   chown root:wheel "${sudoersFile}" || return 10
   chmod u=rw,g=r,o= "${sudoersFile}" || return 20
 }
@@ -63,8 +65,8 @@ function ensureHomebrewOwnershipAndPermission() {
   local itemPath=${1}
   local username=${homebrew_username}
   [[ -f ${itemPath} || -d ${itemPath} ]] || return 1
-  chown "${username}:admin" ${itemPath}
-  chmod ug+rwx,o-w ${itemPath}
+  chown -R "${username}:admin" ${itemPath}
+  chmod ug=rwx,o=rx ${itemPath}
 }
 
 function ensureInstallPrefix() {
@@ -76,7 +78,7 @@ function ensureInstallPrefix() {
 
 function makeDirsGroupWritableIfExist() {
   local dir=
-  local directories=(bin etc include sbin share opt var Frameworks etc/bash_completion.d lib/pkgconfig share/aclocal share/doc  share/info share/locale share/man share/man/man1 share/man/man2 share/man/man3 share/man/man4 share/man/man5 share/man/man6 share/man/man7 share/man/man8 var/log var/homebrew var/homebrew/linked bin/brew)
+  local directories=(bin etc include lib sbin share opt var Frameworks etc/bash_completion.d lib/pkgconfig share/aclocal share/doc  share/info share/locale share/man share/man/man{1,2,3,4,5,6,7,8} var/log var/homebrew var/homebrew/linked bin/brew)
 
   for dir in ${directories}; do
     [[ ! -d "${dir}" ]] && continue
@@ -89,7 +91,7 @@ function ensureZSHDirectories() {
   local directories=(share/zsh share/zsh/site-functions)
   for dir in ${directories}; do
     ensureDirectoryWithDefaultMod ${dir}
-    chmod go-w ${dir}
+    chmod go=rx ${dir}
   done
 }
 
@@ -126,6 +128,7 @@ function configureInstallPrefix() {
   else
     lop -y body -- -d "Install prefix at ${dirPath} does not exist. Will create it."
     indicateActivity 'Creating install prefix' createInstallPrefix
+    indicateActivity 'Create neccessary folders' fixInstallPrefixPermissions
   fi
 }
 
@@ -147,8 +150,8 @@ function downloadHomebrew() {
   runAsHomebrewUser git config core.autocrlf false
   runAsHomebrewUser git config --replace-all homebrew.analyticsmessage false
   runAsHomebrewUser git config --replace-all homebrew.caskanalyticsmessage false
-  runAsHomebrewUser git fetch --quiet --force --depth 1 origin > /dev/null
-  runAsHomebrewUser git fetch --quiet --force --tags --depth 1 origin > /dev/null
+  runAsHomebrewUser git fetch --quiet --force origin > /dev/null
+  runAsHomebrewUser git fetch --quiet --force --tags origin > /dev/null
   runAsHomebrewUser git reset --hard origin/master
 }
 
@@ -168,9 +171,10 @@ function createBrewCallerScript() {
   export HOMEBREW_NO_ANALYTICS=1
   export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
   export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
+  umask 002
   \"${homebrew_prefix}/Homebrew/bin/brew\" \"\$@\"" > ${brewCallerPath}
   chown ${username}:admin ${brewCallerPath}
-  chmod ug+x ${brewCallerPath}
+  chmod ug+x,o-x ${brewCallerPath}
   runAsHomebrewUser ln -sf ${homebrew_prefix}/Homebrew/bin/brew_caller "${homebrew_prefix}/bin/brew"
 }
 
@@ -182,7 +186,7 @@ function installHomebrewCore() {
   runAsHomebrewUser git config remote.origin.url "${git_homebrew_core_remote}"
   runAsHomebrewUser git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
   runAsHomebrewUser git config core.autocrlf false
-  runAsHomebrewUser git fetch --quiet --depth 1 --force origin 'refs/heads/master:refs/remotes/origin/master' > /dev/null
+  runAsHomebrewUser git fetch --quiet --force origin 'refs/heads/master:refs/remotes/origin/master' > /dev/null
   runAsHomebrewUser git remote set-head origin --auto > /dev/null
   runAsHomebrewUser git reset --hard origin/master
 }
@@ -211,6 +215,8 @@ function createLaunchDaemonsPlist() {
     <string>${username}</string>
     <key>GroupName</key>
     <string>admin</string>
+    <key>Umask</key>
+    <integer>2</integer>
   </dict>
 </plist>" > "${launcherPath}"
   chown root:wheel ${launcherPath}
@@ -262,6 +268,7 @@ function getExecPrerequisites() {
     [chmod]=''
     [sudo]=''
     [grep]=''
+    [git]=''
     [sort]=''
     [awk]=''
     [launchctl]=''

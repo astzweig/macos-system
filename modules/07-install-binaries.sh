@@ -18,14 +18,14 @@ function installDocopts() {
   local destPath='/usr/local/bin/docopts'
   [[ -x ${destPath} ]] && return
   indicateActivity -- 'Downloading docpts' curl --output ${destPath} -fsSL ${docopts_url} || return
-  chown root:admin ${destPath}
-  chmod 755 ${destPath}
+  ensureRightAccess ${destPath}
 }
 
 function configure_system() {
   lop -y h1 -- -i 'Install Utility Binaries'
   local dstDir='/usr/local/bin'
   ensurePathOrLogError ${dstDir} 'Could not install binaries.' || return 10
+  indicateActivity -- "Set sticky bit to ${dstDir} folder" chmod +t ${dstDir}
   installDocopts
   copyUtilityBinaries
 }

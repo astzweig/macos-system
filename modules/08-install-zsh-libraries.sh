@@ -9,6 +9,7 @@ function installZshlib() {
   pushd -q ${ASTZWEIG_ZSHLIB}
   zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
   libs+=(${zshlibPath}.zwc)
+  chmod ugo=r ${zshlibPath}.zwc
   popd -q
 }
 
