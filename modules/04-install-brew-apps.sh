@@ -90,6 +90,8 @@ function installCasks() {
     installCask setapp
     installCask mountain-duck
     installCask unpkg
+    installCask whatsapp
+    installCask signal
     installSynologyDrive
     installSFSymbols
   fi
