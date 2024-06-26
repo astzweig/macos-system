@@ -1,6 +1,0 @@
-#!/bin/zsh
-mkdir -p OCRed || exit
-for pdf in *.pdf; do
-    print -- "OCRing ${pdf}"
-    ocrmypdf -l deu ${pdf} ./OCRed/${pdf};
-done
