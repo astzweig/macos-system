@@ -6,11 +6,15 @@ function addLibToStartupFile() {
 
 function installZshlib() {
   local zshlibPath=${libDir}/astzweig_zshlib
-  pushd -q ${ASTZWEIG_ZSHLIB}
-  zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
-  libs+=(${zshlibPath}.zwc)
+  if [[ -d ${ASTZWEIG_ZSHLIB} ]]; then
+    pushd -q ${ASTZWEIG_ZSHLIB}
+    zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
+    libs+=(${zshlibPath}.zwc)
+    popd -q
+  elif [[ -f ${ASTZWEIG_ZSHLIB} ]]; then
+    cp ${ASTZWEIG_ZSHLIB} ${zshlibPath}.zwc;
+  fi
   chmod ugo=r ${zshlibPath}.zwc
-  popd -q
 }
 
 function modifyGlobalFpath() {
@@ -46,9 +50,9 @@ function getUsage() {
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE]
-	
+
 	Install convenient zsh libraries system-wide for use in zsh scripts.
-	
+
 	Options:
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
