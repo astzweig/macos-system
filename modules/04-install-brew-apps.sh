@@ -15,75 +15,9 @@ function installBrew() {
   brewInstall $1
 }
 
-function patchParallels() {
-  pushd -q "`brew --repo homebrew/cask 2> /dev/null`"
-  git status --short --untracked-files=no | grep Casks/parallels.rb > /dev/null
-  local hasBeenPatched=$?
-  if [[ "${hasBeenPatched}" -ne 0 ]]; then
-    echo 'diff --git a/Casks/parallels.rb b/Casks/parallels.rb
---- a/Casks/parallels.rb
-+++ b/Casks/parallels.rb
-@@ -31,12 +31,6 @@ cask "parallels" do
-                    args: ["-d", "com.apple.FinderInfo", "#{staged_path}/Parallels Desktop.app"]
-   end
-
--  postflight do
--    system_command "#{appdir}/Parallels Desktop.app/Contents/MacOS/inittool",
--                   args: ["init"],
--                   sudo: true
--  end
--
-   uninstall_preflight do
-     set_ownership "#{appdir}/Parallels Desktop.app"
-   end
-' | git apply || { lop -- -e 'Patch could not be applied to Casks/parallels.rb.'; return 1 }
-    lop -- -d 'Applied patch to Casks/parallels.rb'
-  fi
-  popd -q
-  return 0
-}
-
-function installParallels() {
-  local inittoolPath='/Applications/Parallels Desktop.app/Contents/MacOS/inittool'
-  [[ -f "${inittoolPath}" ]] && return
-  indicateActivity -- 'Patching Parallels' patchParallels || return 0
-  installCask parallels
-  [ -x "${inittoolPath}" ] && indicateActivity -- 'Running Parallels inittool'  ${inittoolPath}  init 
-}
-
-function installDMGedBrewCaskPackage() {
-  local appName=$1 caskToken=$2 packagePattern=$3 target=${4:-LocalSystem}
-  indicateActivity -- "Download ${appName}" ${homebrew_path} fetch --cask ${caskToken} || return 10
-  local dmgPath="$(${homebrew_path} --cache --cask ${caskToken})"
-  local tmpd="$(mktemp -d -t ${caskToken})"
-  pushd -q $tmpd
-  hdiutil attach $dmgPath -nobrowse -readonly -mountpoint $tmpd || return
-  traps add detach-mount "find '${tmpd}' -type d -mindepth 1 -maxdepth 1 -exec hdiutil detach {} \; >&! /dev/null"
-  trap "popd -q; traps call exit; rm -fr '${tmpd}'; traps remove detach-mount" EXIT
-  local pkg="$(find $tmpd -name ${packagePattern} | head -n1)"
-  [[ -n $pkg ]] || return
-  indicateActivity -- "Install ${appName}" installer -package $pkg -target $target
-}
-
-function installAdobeAcrobatPro() {
-  [[ -d '/Applications/Adobe Acrobat DC' ]] && return
-  installDMGedBrewCaskPackage 'Adobe Acrobat Pro' adobe-acrobat-pro '*Installer.pkg'
-}
-
-function installSFSymbols() {
-  [[ -d '/Applications/SF Symbols.app' ]] && return
-  installDMGedBrewCaskPackage 'SF Symbols' sf-symbols 'SF Symbols.pkg'
-}
-
-function installSynologyDrive() {
-  installDMGedBrewCaskPackage 'Synology Drive' synology-drive '*Synology Drive Client.pkg'
-}
-
 function installCasks() {
   lop -y body:h1 -- -i 'Installing Homebrew casks'
-  installParallels
-  installAdobeAcrobatPro
-  installCask rectangle-pro
+  installCask parallels
   if ! isDebug; then
     installCask little-snitch
     installCask sketch
@@ -92,8 +26,8 @@ function installCasks() {
     installCask unpkg
     installCask whatsapp
     installCask signal
-    installSynologyDrive
-    installSFSymbols
+    installCask synology-drive
+    installCask sf-symbols
   fi
 }
 
@@ -106,9 +40,6 @@ function installBrews() {
   if ! isDebug; then
     installBrew python
     installBrew rcm
-    installBrew tesseract
-    installBrew tesseract-lang
-    installBrew ocrmypdf
     installBrew php
     installBrew composer
     installBrew curl
@@ -159,9 +90,9 @@ function getUsage() {
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --homebrew-path PATH
-	
+
 	Install cli tools, macOS apps and fonts via Homebrew.
-	
+
 	Options:
 	  --homebrew-path PATH        Path to Homebrew binary [default: $(getDefaultHomebrewPath)].
 	  -d FILE, --logfile FILE     Print log message to logfile instead of stdout.
