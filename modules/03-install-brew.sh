@@ -65,7 +65,7 @@ function ensureHomebrewOwnershipAndPermission() {
   local username=${homebrew_username}
   [[ -f ${itemPath} || -d ${itemPath} ]] || return 1
   chown -R "${username}:admin" ${itemPath}
-  chmod ug=rwx,o=rx ${itemPath}
+  chmod u=rwx,go=rx ${itemPath}
 }
 
 function ensureInstallPrefix() {
@@ -173,7 +173,7 @@ function createBrewCallerScript() {
   umask 002
   \"${homebrew_prefix}/Homebrew/bin/brew\" \"\$@\"" > ${brewCallerPath}
   chown ${username}:admin ${brewCallerPath}
-  chmod ug+x,o-x ${brewCallerPath}
+  chmod u+x,go-x ${brewCallerPath}
   runAsHomebrewUser ln -sf ${homebrew_prefix}/Homebrew/bin/brew_caller "${homebrew_prefix}/bin/brew"
 }
 
