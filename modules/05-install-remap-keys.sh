@@ -7,31 +7,37 @@ function ensureRightAccess() {
   chmod ugo=rx ${filesystemItem}
 }
 
-function createRemapKeysBinary() {
-  cat > ${remapKeysPath} <<- BINARY
-	#!/bin/zsh
-	PRODUCT_MATCHER='{"ProductID":0x7a5,"VendorID":0x45e}'
-	
-	hasMappingBeenAlreadyActivated() {
-	  local currentModifierKeyMappings="\`hidutil property --get UserKeyMapping -m '{"ProductID":0x7a5,"VendorID":0x45e}' | grep HIDKeyboardModifierMappingDst | wc -l\`"
-	  test "\${currentModifierKeyMappings}" -gt 1
-	}
-	
-	hasMappingBeenAlreadyActivated && exit 0
-	hidutil property --matching "\${PRODUCT_MATCHER}" --set '{"UserKeyMapping": [
-	    {"HIDKeyboardModifierMappingSrc": 0x700000065, "HIDKeyboardModifierMappingDst": 0x7000000e7},
-	    {"HIDKeyboardModifierMappingSrc": 0x7000000e3, "HIDKeyboardModifierMappingDst": 0x7000000e2},
-	    {"HIDKeyboardModifierMappingSrc": 0x7000000e2, "HIDKeyboardModifierMappingDst": 0x7000000e3}
-	]}' > /dev/null 2>&1
-	BINARY
-  ensureRightAccess ${remapKeysPath}
+function getDataForMicrosoftKeyboard() {
+  local name="$1"
+  [ "$name" == "ProductID" ] && echo '0x7a5'
+  [ "$name" == "VendorID" ] && echo '0x45e'
+  [ "$name" == "LaunchdServiceName"] && echo 'de.astzweig.macos.launchdaemons.microsoft-keymapper'
+  [ "$name" == "BinaryName" ] && echo 'remap-keys-microsoft'
+  [ "$name" == "KeyMappings" ] && cat <<- KEYMAPPINGS
+	  {"HIDKeyboardModifierMappingSrc": 0x700000065, "HIDKeyboardModifierMappingDst": 0x7000000e7},
+	  {"HIDKeyboardModifierMappingSrc": 0x7000000e3, "HIDKeyboardModifierMappingDst": 0x7000000e2},
+	  {"HIDKeyboardModifierMappingSrc": 0x7000000e2, "HIDKeyboardModifierMappingDst": 0x7000000e3}
+	KEYMAPPINGS
+}
+
+function getDataForLogitechKeyboard() {
+  local name="$1"
+  [ "$name" == "ProductID" ] && echo '0xc52b'
+  [ "$name" == "VendorID" ] && echo '0x46d'
+  [ "$name" == "LaunchdServiceName"] && echo 'de.astzweig.macos.launchdaemons.logitech-keymapper'
+  [ "$name" == "BinaryName" ] && echo 'remap-keys-logitech'
+  [ "$name" == "KeyMappings" ] && cat <<- KEYMAPPINGS
+	  {"HIDKeyboardModifierMappingSrc": 0x7000000e6, "HIDKeyboardModifierMappingDst": 0x7000000e7},
+	  {"HIDKeyboardModifierMappingSrc": 0x7000000e7, "HIDKeyboardModifierMappingDst": 0x7000000e6}
+	KEYMAPPINGS
 }
 
 function createXPCConsumer() {
+  [[ -x ${xpcConsumerPath} ]] && return 10
   clang -framework Foundation -x objective-c -o ${xpcConsumerPath} - <<- BINARY
 	#import <Foundation/Foundation.h>
 	#include <xpc/xpc.h>
-	
+
 	int main(int argc, const char * argv[]) {
 	    @autoreleasepool {
 	        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
@@ -50,7 +56,42 @@ function createXPCConsumer() {
   ensureRightAccess ${xpcConsumerPath}
 }
 
+function getProductPlistDict() {
+  local dataProvider="$1"
+  cat <<- PLISTDICT
+	<dict>
+	  <key>idProduct</key>
+	  <integer>$(($($dataProvider ProductID)))</integer>
+	  <key>idVendor</key>
+	  <integer>$(($($dataProvider VendorID)))</integer>
+	  <key>IOProviderClass</key>
+	  <string>IOUSBDevice</string>
+	  <key>IOMatchLaunchStream</key>
+	  <true/>
+	</dict>
+	PLISTDICT
+}
+
+function createRemapKeysBinary() {
+  cat > ${binaryPath} <<- BINARY
+	#!/bin/zsh
+	PRODUCT_MATCHER='{"ProductID":$($dataProvider ProductID),"VendorID":$($dataProvider VendorID)}'
+
+	hasMappingBeenAlreadyActivated() {
+	  local currentModifierKeyMappings="\`hidutil property --get UserKeyMapping -m "\${PRODUCT_MATCHER}" | grep HIDKeyboardModifierMappingDst | wc -l\`"
+	  test "\${currentModifierKeyMappings}" -gt 1
+	}
+
+	hasMappingBeenAlreadyActivated || \
+	hidutil property --matching "\${PRODUCT_MATCHER}" --set '{"UserKeyMapping": [
+	    $($dataProvider KeyMappings)
+	]}' > /dev/null 2>&1
+	BINARY
+  ensureRightAccess ${binaryPath}
+}
+
 function createLaunchDaemon() {
+  local dataProvider="$1"
   cat > ${launchDaemonPath} <<- LDAEMON
 	<?xml version="1.0" encoding="UTF-8"?>
 	<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -69,14 +110,7 @@ function createLaunchDaemon() {
 	      <dict>
 	        <key>com.apple.device-attach</key>
 	        <dict>
-	            <key>idProduct</key>
-	            <integer>1957</integer>
-	            <key>idVendor</key>
-	            <integer>1118</integer>
-	            <key>IOProviderClass</key>
-	            <string>IOUSBDevice</string>
-	            <key>IOMatchLaunchStream</key>
-	            <true/>
+            $(getProductPlistDict $dataProvider)
 	        </dict>
 	      </dict>
 	    </dict>
@@ -90,18 +124,33 @@ function enableLaunchDaemon() {
   launchctl bootstrap system ${launchDaemonPath}
 }
 
+function createLaunchdService() {
+  local launchDaemonPath="/Library/LaunchDaemons/$($dataProvider LaunchdServiceName).plist"
+  [[ -f ${launchDaemonPath} ]] || indicateActivity -- 'Create Launch Daemon' createLaunchDaemon
+  indicateActivity -- 'Enable Launch Daemon' enableLaunchDaemon
+}
+
+function configureKeymappers() {
+  local mapper= dataProvider= binaryPath=
+  for mapper dataProvider in $(mappers); do
+    lop -y h1 -- -i "Configure ${mapper} Keymapper"
+    binaryPath="${dstDir}/$($dataProvider BinaryName)"
+    createRemapKeysBinary
+    createLaunchdService
+  done
+}
+
 function configure_system() {
-  lop -y h1 -- -i 'Configure Microsoft Keyremapper'
-  local serviceName='de.astzweig.macos.launchdaemons.keymapper'
+  typeset -A mappers=(
+    [Microsoft]=getDataForMicrosoftKeyboard
+    [Logitech]=getDataForLogitechKeyboard
+  )
   local dstDir='/usr/local/bin'
   local xpcConsumerPath="${dstDir}/astzweig-xpc-consumer"
-  local remapKeysPath="${dstDir}/remap-keys"
-  local launchDaemonPath="/Library/LaunchDaemons/${serviceName}.plist"
-  ensurePathOrLogError ${dstDir} 'Could not install remap-keys.' || return 10
-  [[ -x ${remapKeysPath} ]] || indicateActivity -- 'Create remap-keys executable' createRemapKeysBinary
-  [[ -x ${xpcConsumerPath} ]] || createXPCConsumer 'Create XPC event consuer'
-  [[ -f ${launchDaemonPath} ]] || createLaunchDaemon 'Create Launch Daemon'
-  indicateActivity -- 'Enable Launch Daemon' enableLaunchDaemon
+
+  ensurePathOrLogError ${dstDir} 'Could not create destination dir for remap-keys binary.' || return 10
+  indicateActivity -- 'Create XPC event consumer' createXPCConsumer
+  configureKeymappers
 }
 
 function getExecPrerequisites() {
@@ -119,10 +168,10 @@ function getUsage() {
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE]
-	
+
 	Install a system wide key remapper for the Microsoft Sculpt Keyboard using
 	macOS nativ hidutil, in order to swap command and option key.
-	
+
 	Options:
 	  -d FILE, --logfile FILE         Print log message to logfile instead of stdout.
 	  -v, --verbose                   Be more verbose.
