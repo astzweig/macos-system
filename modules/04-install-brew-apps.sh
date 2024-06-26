@@ -24,6 +24,7 @@ function installCasks() {
     installCask automattic-texts
     installCask synology-drive
     installCask sf-symbols
+    installCask prizmo
   fi
 }
 
