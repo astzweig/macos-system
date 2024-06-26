@@ -99,7 +99,7 @@ function main() {
   popd -q
 }
 
-if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
   _DIR="${0:A:h}"
   main "$@"
 fi
