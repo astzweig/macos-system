@@ -24,14 +24,13 @@ function ensureUserIsInAdminGroup() {
   dseditgroup -o edit -a "${username}" -t user admin
 }
 
-function ensureUserCannotRunSudo() {
+function ensureUserCanRunPasswordlessSudo() {
   local username=$1
-  local sudoersFile="/etc/sudoers.d/disallow-sudo-for-${username}"
+  local sudoersFile="/etc/sudoers.d/no-auth-sudo-for-${username}"
   [[ -f ${sudoersFile} ]] && return
   cat <<- SUDOERS > "${sudoersFile}"
-	Defaults:${username} !authenticate
-	${username} ALL=(ALL) !ALL
-	SUDOERS
+  Defaults:${username} !authenticate
+  SUDOERS
   chown root:wheel "${sudoersFile}" || return 10
   chmod u=rw,g=r,o= "${sudoersFile}" || return 20
 }
@@ -245,7 +244,7 @@ function configure_system() {
   lop -y h1 -- -i 'Install System Homebrew'
   createHomebrewUserIfNeccessary || return 10
   indicateActivity 'Ensure Homebrew user is in admin group' ensureUserIsInAdminGroup ${homebrew_username} || return 11
-  indicateActivity 'Ensure Homebrew user can not run sudo' ensureUserCannotRunSudo ${homebrew_username} || return 12
+  indicateActivity 'Ensure Homebrew user can run passwordless sudo' ensureUserCanRunPasswordlessSudo ${homebrew_username} || return 12
   configureInstallPrefix ${homebrew_prefix} || return 13
   ensureHomebrewCacheDirectory || return 14
   ensureHomebrewLogDirectory || return 15
@@ -332,11 +331,11 @@ function getUsage() {
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --homebrew-prefix PREFIX --homebrew-username NAME --homebrew-cache PATH --homebrew-log PATH --git-homebrew-remote URL --git-homebrew-core-remote URL --git-homebrew-cask-remote URL --git-homebrew-font-remote URL --git-homebrew-driver-remote URL
-	
+
 	Create a designated Homebrew user who may not login to the system but is the
 	only one able to install homebrew software systemwide. Install Homebrew at
 	given PREFIX and make the new Homebrew user the owner of that.
-	
+
 	Options:
 	  --homebrew-prefix PREFIX          Path to folder that shall be the prefix of
 	                                    the system wide Homebrew installation [default: $(getDefaultHomebrewPrefix)].
