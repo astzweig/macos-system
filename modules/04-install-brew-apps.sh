@@ -17,15 +17,11 @@ function installBrew() {
 
 function installCasks() {
   lop -y body:h1 -- -i 'Installing Homebrew casks'
-  installCask parallels
   if ! isDebug; then
-    installCask little-snitch
     installCask sketch
-    installCask setapp
-    installCask mountain-duck
-    installCask unpkg
-    installCask whatsapp
-    installCask signal
+    installCask nova
+    installCask transmit
+    installCask automattic-texts
     installCask synology-drive
     installCask sf-symbols
   fi
@@ -48,6 +44,7 @@ function installBrews() {
     installBrew gnupg
     installBrew node
     installBrew nmap
+    installBrew tree
   fi
 }
 

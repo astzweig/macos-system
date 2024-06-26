@@ -17,8 +17,6 @@ function configure_system() {
     installMASApp Numbers 409203825
 
     installMASApp Outbank 1094255754
-    installMASApp Telegram 747648890
-    installMASApp 1Password 1333542190
 
     installMASApp 'Final Cut Pro' 424389933
     installMASApp GarageBand 682658836
@@ -48,9 +46,9 @@ function getUsage() {
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --logged-in ANS
-	
+
 	Install macOS applications from Apple's macOS App Store.
-	
+
 	Options:
 	  -l ANS, --logged-in ANS  This option is to ensure, that the caller has
 	                           checked that a user is logged in to the App Store.
