@@ -68,95 +68,31 @@ function ensureHomebrewOwnershipAndPermission() {
   chmod u=rwx,go=rx ${itemPath}
 }
 
-function ensureInstallPrefix() {
-  if [ ! -d "${INSTALL_PREFIX}" ]; then
-    mkdir -p "${INSTALL_PREFIX}"
-    chown root:wheel "${INSTALL_PREFIX}"
+function ensureLocalBinFolder() {
+  local folder="/usr/local/bin"
+  if [ ! -d "${folder}" ]; then
+    mkdir -p "${folder}" 2> /dev/null || {
+      lop -- -e 'Could not create directory' -e $folder
+      return 10
+    }
+    chown root:admin "${folder}"
+    chmod ug=rwx,o=rx "${folder}"
   fi
 }
 
-function makeDirsGroupWritableIfExist() {
-  local dir=
-  local directories=(bin etc include lib sbin share opt var Frameworks etc/bash_completion.d lib/pkgconfig share/aclocal share/doc  share/info share/locale share/man share/man/man{1,2,3,4,5,6,7,8} var/log var/homebrew var/homebrew/linked bin/brew)
-
-  for dir in ${directories}; do
-    [[ ! -d "${dir}" ]] && continue
-    ensureHomebrewOwnershipAndPermission ${dir}
-  done
-}
-
-function ensureZSHDirectories() {
-  local dir=
-  local directories=(share/zsh share/zsh/site-functions)
-  for dir in ${directories}; do
-    ensureDirectoryWithDefaultMod ${dir}
-    chmod go=rx ${dir}
-  done
-}
-
-function ensureHomebrewDirectories() {
-  local dir=
-  local directories=(bin etc include lib sbin share var opt Homebrew var/homebrew var/homebrew/linked Cellar Caskroom Frameworks)
-  for dir in ${directories}; do
-    ensureDirectoryWithDefaultMod ${dir}
-  done
-}
-
-function ensureHomebrewCacheDirectory() {
-  ensureDirectoryWithDefaultMod "${homebrew_cache}"
-  runAsHomebrewUser touch "${homebrew_cache}/.cleaned"
-}
-
-function ensureHomebrewLogDirectory() {
-  ensureDirectoryWithDefaultMod ${homebrew_log}
-}
-
-function fixInstallPrefixPermissions() {
-  pushd -q ${dirPath}
-  makeDirsGroupWritableIfExist
-  ensureZSHDirectories
-  ensureHomebrewDirectories
-  popd -q
-}
-
-function configureInstallPrefix() {
-  local dirPath=$1
-  if [[ -d "${dirPath}" ]]; then
-    lop -y body -- -d "Install prefix at ${dirPath} already exists. Will correct permissions of possible enclosed folders."
-    indicateActivity 'Correct permissions of possible enclosed folders' fixInstallPrefixPermissions
+function getHomebrewRepositoryPath() {
+  if [[ "${uname_machine}" == "arm64" ]]; then
+    print -- "/opt/homebrew"
   else
-    lop -y body -- -d "Install prefix at ${dirPath} does not exist. Will create it."
-    indicateActivity 'Creating install prefix' createInstallPrefix
-    indicateActivity 'Create neccessary folders' fixInstallPrefixPermissions
+    print "/usr/local/Homebrew"
   fi
-}
-
-function createInstallPrefix() {
-  mkdir -p ${dirPath} 2> /dev/null || {
-    lop -- -e 'Could not create directory' -e $dirPath
-    return 10
-  }
-  chown root:wheel "${dirPath}"
-  chmod 744 "${dirPath}"
-}
-
-function downloadHomebrew() {
-  cd "${homebrew_prefix}/Homebrew" > /dev/null || return 10
-  [ -d ".git" ] && return
-  runAsHomebrewUser git init -q
-  runAsHomebrewUser git config remote.origin.url "${git_homebrew_remote}"
-  runAsHomebrewUser git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
-  runAsHomebrewUser git config core.autocrlf false
-  runAsHomebrewUser git config --replace-all homebrew.analyticsmessage false
-  runAsHomebrewUser git config --replace-all homebrew.caskanalyticsmessage false
-  runAsHomebrewUser git fetch --quiet --force origin > /dev/null
-  runAsHomebrewUser git fetch --quiet --force --tags origin > /dev/null
-  runAsHomebrewUser git reset --hard origin/master
 }
 
 function createBrewCallerScript() {
+  ensureLocalBinFolder
   local username=${homebrew_username}
-  local brewCallerPath="${homebrew_prefix}/Homebrew/bin/brew_caller"
+  local brewCallerPath="/usr/local/bin/brew"
+  [ -f "${brewCallerPath}" ] && rm "${brewCallerPath}"
   cat <<- BREWCALLER > ${brewCallerPath}
 	#!/usr/bin/env zsh
 	if [ \"\$(id -un)\" != \"${username}\" ]; then
@@ -164,32 +100,21 @@ function createBrewCallerScript() {
 	  sudo -E -u \"${username}\" \"\$0\" \"\$@\"
 	  exit \$?
 	fi
-	export HOMEBREW_CACHE=\"${homebrew_cache}\"
-	export HOMEBREW_LOGS=\"${homebrew_log}\"
 	export HOMEBREW_CASK_OPTS=\"--no-quarantine \${HOMEBREW_CASK_OPTS}\"
 	export HOMEBREW_NO_AUTO_UPDATE=1
 	export HOMEBREW_NO_ANALYTICS=1
 	export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 	export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 	umask 002
-	\"${homebrew_prefix}/Homebrew/bin/brew\" \"\$@\"
+	\"$(getHomebrewRepositoryPath)/bin/brew\" \"\$@\"
 	BREWCALLER
   chown ${username}:admin ${brewCallerPath}
   chmod u+x,go-x ${brewCallerPath}
-  runAsHomebrewUser ln -sf ${homebrew_prefix}/Homebrew/bin/brew_caller "${homebrew_prefix}/bin/brew"
 }
 
 function installHomebrewCore() {
-  runAsHomebrewUser mkdir -p "${homebrew_prefix}/Homebrew/Library/Taps/homebrew/homebrew-core" || return 10
-  pushd -q "${homebrew_prefix}/Homebrew/Library/Taps/homebrew/homebrew-core"
-  [ -d ".git" ] && return
-  runAsHomebrewUser git init -q
-  runAsHomebrewUser git config remote.origin.url "${git_homebrew_core_remote}"
-  runAsHomebrewUser git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
-  runAsHomebrewUser git config core.autocrlf false
-  runAsHomebrewUser git fetch --quiet --force origin 'refs/heads/master:refs/remotes/origin/master' > /dev/null
-  runAsHomebrewUser git remote set-head origin --auto > /dev/null
-  runAsHomebrewUser git reset --hard origin/master
+  export NONINTERACTIVE=1
+  sudo --preserve-env=NONINTERACTIVE -u "${homebrew_username}" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 }
 
 function createLaunchDaemonsPlist() {
@@ -249,13 +174,9 @@ function configure_system() {
   createHomebrewUserIfNeccessary || return 10
   indicateActivity 'Ensure Homebrew user is in admin group' ensureUserIsInAdminGroup ${homebrew_username} || return 11
   indicateActivity 'Ensure Homebrew user can run passwordless sudo' ensureUserCanRunPasswordlessSudo ${homebrew_username} || return 12
-  configureInstallPrefix ${homebrew_prefix} || return 13
-  ensureHomebrewCacheDirectory || return 14
-  ensureHomebrewLogDirectory || return 15
-  indicateActivity 'Downloading Homebrew' downloadHomebrew || return 16
-  indicateActivity 'Create brew caller script' createBrewCallerScript || return 17
-  indicateActivity 'Install Homebrew core' installHomebrewCore || return 18
-  indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 19
+  indicateActivity 'Install Homebrew core' installHomebrewCore || return 13
+  indicateActivity 'Create brew caller script' createBrewCallerScript || return 14
+  indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 15
   pushd -q /
   indicateActivity 'Tapping homebrew/cask' tapHomebrewCask
   indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts
@@ -282,26 +203,6 @@ function getExecPrerequisites() {
 
 function getDefaultHomebrewUsername() {
   print -- _homebrew
-}
-
-function getDefaultHomebrewPrefix() {
-  print -- /usr/local
-}
-
-function getDefaultHomebrewCachePath() {
-  print -- /Library/Caches/Homebrew
-}
-
-function getDefaultHomebrewLogPath() {
-  print -- /var/log/Homebrew
-}
-
-function getDefaultGitHomebrewURL() {
-  print -- ${HOMEBREW_BREW_GIT_REMOTE:-https://github.com/Homebrew/brew.git}
-}
-
-function getDefaultGitHomebrewCoreURL() {
-  print -- ${HOMEBREW_BREW_CORE_GIT_REMOTE:-https://github.com/Homebrew/homebrew-core.git}
 }
 
 function getDefaultGitHomebrewCaskURL() {
