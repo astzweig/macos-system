@@ -132,7 +132,7 @@ function createLaunchdService() {
 
 function configureKeymappers() {
   local mapper= dataProvider= binaryPath=
-  for mapper dataProvider in $(mappers); do
+  for mapper dataProvider in ${mappers}; do
     lop -y h1 -- -i "Configure ${mapper} Keymapper"
     binaryPath="${dstDir}/$($dataProvider BinaryName)"
     createRemapKeysBinary
