@@ -78,7 +78,6 @@ function isPlistBuddyInstalled() {
 function checkPrerequisites() {
   isMacOS || { lop -- -e 'This setup is only for macOS 10.13 and up.'; return 10 }
   isPlistBuddyInstalled || { lop -- -e 'This setup requires PlistBuddy to be either at /usr/libexec or in any of the PATH directories.'; return 11 }
-  test "`id -u`" -eq 0 || { lop -- -e 'This module requires root access. Please run as root.'; return 11 }
 }
 
 function configureTerminal() {
@@ -101,11 +100,11 @@ function main() {
   checkPrerequisites || return
   eval "`docopts -f -V - -h - : "$@" <<- USAGE
 	Usage: $0 [options] [-m PATH]... [<module>...]
-	
+
 	Install all modules in module search path. If any <module> arg is given,
 	install only modules that either match any given <module> or whose path ends
 	like any of the given <module>.
-	
+
 	Options:
 	  -i, --inverse            Exclude the given <module> instead.
 	  -m PATH, --modpath PATH  Include PATH in the module search path.
@@ -135,6 +134,7 @@ function main() {
 
   askNecessaryQuestions
   [ -z "${config_only}" ] || return 0
+  requireRootPrivileges
   installModules
 }
 

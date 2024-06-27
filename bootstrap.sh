@@ -77,7 +77,6 @@ function main() {
   local traps=()
   local -A colors=() errColors=()
   defineColors
-  id -Gn | grep admin >&! /dev/null || { printError 'This script requires root access. Please run as an admin user.'; return 10 }
 
   configureTerminal
   local tmpdir="`mktemp -d -t 'macos-system'`"
@@ -94,7 +93,7 @@ function main() {
   local -A colors=() errColors=()
   [ -t 1 ] && tput cnorm
   isDebug && export MACOS_SYSTEM_DEBUG=true
-  sudo --preserve-env=HOMEBREW_BREW_GIT_REMOTE,HOMEBREW_BREW_CORE_GIT_REMOTE,HOMEBREW_BREW_CASK_GIT_REMOTE,HOMEBREW_BREW_CASK_FONTS_GIT_REMOTE,MACOS_SYSTEM_DEBUG "${tmpdir}/install.sh" "$@"
+  "${tmpdir}/install.sh" "$@"
   [ -t 1 ] && tput civis
   popd -q
 }
