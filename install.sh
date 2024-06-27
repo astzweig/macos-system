@@ -6,16 +6,16 @@ runModule() {
 }
 
 function askNecessaryQuestions() {
-  local mod= configOnlyArgs=()
+  local mod= configArgs=()
   config setappname "de.astzweig.macos.system-setup"
   if [ -n "${config_only}" ]; then
     lop -- -d "Config only option given with value:" -d "${config_only}"
     config setconfigfile "${config_only}"
-    configOnlyArgs=(-x)
   elif [ -n "${config}" ]; then
     config setconfigfile "${config}"
+    configArgs=(-x)
   fi
-  askUserModuleQuestions ${configOnlyArgs} -c config -v moduleAnswers ${modulesToInstall}
+  askUserModuleQuestions ${configArgs} -c config -v moduleAnswers ${modulesToInstall}
 }
 
 function printModulesToInstall() {
