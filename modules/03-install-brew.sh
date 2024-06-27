@@ -126,6 +126,7 @@ function createBrewCallerScript() {
 function installHomebrewCore() {
   export NONINTERACTIVE=1
   sudo --preserve-env=NONINTERACTIVE -u "${homebrew_username}" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  return 0
 }
 
 function createLaunchDaemonsPlist() {
