@@ -29,8 +29,8 @@ function ensureUserCanRunPasswordlessSudo() {
   local sudoersFile="/etc/sudoers.d/no-auth-sudo-for-${username}"
   [[ -f ${sudoersFile} ]] && return
   cat <<- SUDOERS > "${sudoersFile}"
-  Defaults:${username} !authenticate
-  SUDOERS
+	Defaults:${username} !authenticate
+	SUDOERS
   chown root:wheel "${sudoersFile}" || return 10
   chmod u=rw,g=r,o= "${sudoersFile}" || return 20
 }
@@ -157,21 +157,23 @@ function downloadHomebrew() {
 function createBrewCallerScript() {
   local username=${homebrew_username}
   local brewCallerPath="${homebrew_prefix}/Homebrew/bin/brew_caller"
-  print -- "#!/usr/bin/env zsh
-  if [ \"\$(id -un)\" != \"${username}\" ]; then
-    echo 'brew will be run as ${username} user.' >&2
-    sudo -E -u \"${username}\" \"\$0\" \"\$@\"
-    exit \$?
-  fi
-  export HOMEBREW_CACHE=\"${homebrew_cache}\"
-  export HOMEBREW_LOGS=\"${homebrew_log}\"
-  export HOMEBREW_CASK_OPTS=\"--no-quarantine \${HOMEBREW_CASK_OPTS}\"
-  export HOMEBREW_NO_AUTO_UPDATE=1
-  export HOMEBREW_NO_ANALYTICS=1
-  export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
-  export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
-  umask 002
-  \"${homebrew_prefix}/Homebrew/bin/brew\" \"\$@\"" > ${brewCallerPath}
+  cat <<- BREWCALLER > ${brewCallerPath}
+	#!/usr/bin/env zsh
+	if [ \"\$(id -un)\" != \"${username}\" ]; then
+	  echo 'brew will be run as ${username} user.' >&2
+	  sudo -E -u \"${username}\" \"\$0\" \"\$@\"
+	  exit \$?
+	fi
+	export HOMEBREW_CACHE=\"${homebrew_cache}\"
+	export HOMEBREW_LOGS=\"${homebrew_log}\"
+	export HOMEBREW_CASK_OPTS=\"--no-quarantine \${HOMEBREW_CASK_OPTS}\"
+	export HOMEBREW_NO_AUTO_UPDATE=1
+	export HOMEBREW_NO_ANALYTICS=1
+	export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
+	export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
+	umask 002
+	\"${homebrew_prefix}/Homebrew/bin/brew\" \"\$@\"
+	BREWCALLER
   chown ${username}:admin ${brewCallerPath}
   chmod u+x,go-x ${brewCallerPath}
   runAsHomebrewUser ln -sf ${homebrew_prefix}/Homebrew/bin/brew_caller "${homebrew_prefix}/bin/brew"
@@ -196,28 +198,30 @@ function createLaunchDaemonsPlist() {
   local launcherPath="/Library/LaunchDaemons/${launcherName}.plist"
   [[ -f $launcherPath ]] && return
   local brewCommand="$2"
-  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
-  <dict>
-    <key>Label</key>
-    <string>${launcherName}</string>
-    <key>Program</key>
-    <string>${homebrew_prefix}/bin/brew</string>
-    <key>ProgramArguments</key>
-    <array>
-      <string>${brewCommand}</string>
-    </array>
-    <key>StartInterval</key>
-    <integer>1800</integer>
-    <key>UserName</key>
-    <string>${username}</string>
-    <key>GroupName</key>
-    <string>admin</string>
-    <key>Umask</key>
-    <integer>2</integer>
-  </dict>
-</plist>" > "${launcherPath}"
+  cat <<- LAUNCHDPLIST > ${launcherPath}
+  <?xml version=\"1.0\" encoding=\"UTF-8\"?>
+	<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+	<plist version=\"1.0\">
+	<dict>
+	  <key>Label</key>
+	  <string>${launcherName}</string>
+	  <key>Program</key>
+	  <string>${homebrew_prefix}/bin/brew</string>
+	  <key>ProgramArguments</key>
+	  <array>
+	    <string>${brewCommand}</string>
+	  </array>
+	  <key>StartInterval</key>
+	  <integer>1800</integer>
+	  <key>UserName</key>
+	  <string>${username}</string>
+	  <key>GroupName</key>
+	  <string>admin</string>
+	  <key>Umask</key>
+	  <integer>2</integer>
+	</dict>
+	</plist>"
+	LAUNCHDPLIST
   chown root:wheel ${launcherPath}
   chmod u=rw,go=r ${launcherPath}
   launchctl bootstrap system ${launcherPath}
