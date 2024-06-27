@@ -27,17 +27,18 @@ function printModulesToInstall() {
 }
 
 function generateModuleOptions() {
-  local value answerKey optionKey
+  local value answerKey optionKey argName
   for answerKey in ${(k)moduleAnswers}; do
     [[ ${answerKey} = ${mod}_* ]] || continue
     optionKey="${answerKey#${mod}_}"
+    argName=${optionKey//_/-};
     value="${moduleAnswers[${answerKey}]}"
     if [[ "${optionKey}" =~ ^[[:alpha:]]$ ]]; then
-      moduleOptions+=("-${optionKey}" "${value}")
+      moduleOptions+=("-${argName}" "${value}")
     elif [[ "${optionKey}" =~ ^[[:alpha:]][-[:alpha:]]+$ ]]; then
-      moduleOptions+=("--${optionKey}" "${value}")
+      moduleOptions+=("--${argName}" "${value}")
     else
-      moduleOptions+=("${optionKey}" "${value}")
+      moduleOptions+=("${argName}" "${value}")
     fi
   done
 }
