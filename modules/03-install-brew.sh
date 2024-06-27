@@ -125,8 +125,9 @@ function createBrewCallerScript() {
 
 function installHomebrewCore() {
   export NONINTERACTIVE=1
+  [ ! -d $(getHomebrewRepositoryPath) ] || return
   sudo --preserve-env=NONINTERACTIVE -u "${homebrew_username}" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  return 0
+  [ -d $(getHomebrewRepositoryPath) ]
 }
 
 function createLaunchDaemonsPlist() {
@@ -167,6 +168,7 @@ function createLaunchDaemonsPlist() {
 function installHomebrewUpdater() {
   createLaunchDaemonsPlist brew-updater update
   createLaunchDaemonsPlist brew-upgrader upgrade
+  return
 }
 
 function tapHomebrewCask() {
