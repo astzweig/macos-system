@@ -1,23 +1,12 @@
 #!/usr/bin/env zsh
 # vi: set ft=zsh tw=80 ts=2
 
-function getComputerName() {
-	local moduleAnswer
-	local computerName="`scutil --get ComputerName 2> /dev/null`"
-	getModuleAnswerByKeyRegEx '_hostname$' && computerName=$moduleAnswer
-	print -- $computerName
-}
-
 function getDefaultFullname() {
-	local computerName="`getComputerName`"
-	lop -- -d 'Default full name based on current computer name is:' -d "$computerName"
-	print "${computerName}"
+	print "Astzweig Device"
 }
 
 function getDefaultUsername() {
-	local username="`getDefaultFullname | tr '[:upper:]' '[:lower:]' | tr -C '[:alnum:]\n' '-'`"
-	lop -- -d 'Default username based on current computer name is:' -d "$username"
-	print "${username}"
+	print 'azwdevice'
 }
 
 function isAPFSFilesystem() {
@@ -166,18 +155,6 @@ function allowFileVaultUserToUnlockDisk() {
 	indicateActivity -- "Allow FileVault user to unlock disk" _allowUserToUnlockDisk ${filevault_username} ${filevault_password}
 }
 
-function _allowOnlyFileVaultUserToUnlock() {
-	local fdeuser
-	for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
- 	[[ ${fdeuser} != ${filevault_username} ]] && fdesetup remove -user "${fdeuser}"
-	done
-	return 0
-}
-
-function allowOnlyFileVaultUserToUnlock() {
-	indicateActivity -- "Disallow everyone else from unlocking disk" _allowOnlyFileVaultUserToUnlock
-}
-
 function configure_system() {
 	lop -y h1 -- -i 'Setup FileVault System'
 	checkSecureTokenForUser "${secure_token_user_username}" || { lop -- -e 'The provided secure token user has no secure token.'; return 10 }
@@ -194,7 +171,6 @@ function configure_system() {
 	enableFileVaultForSecureTokenUser || { lop -- -e 'Could not enable FileVault for secure token user.'; return 16 }
 	checkSecureTokenForUser "${filevault_username}" || configureSecureToken || { lop -- -e 'Could not configure secure token for FileVault user.'; return 17 }
 	canUserUnlockDisk ${filevault_username} || allowFileVaultUserToUnlockDisk || { lop -- -e 'Was not able to allow FileVault user to unlock disk.'; return 18 }
-	allowOnlyFileVaultUserToUnlock "${filevault_username}" || { lop -- -e 'Was not able to deactivate all other user from unlocking disk.'; return 19 }
 	indicateActivity -- 'Update APFS preboot volume' diskutil apfs updatePreboot / || { lop -- -e 'Was not able to update APFS preboot volume.'; return 20 }
 }
 
