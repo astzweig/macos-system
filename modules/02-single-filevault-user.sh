@@ -51,7 +51,7 @@ function createLaunchDaemon() {
 			<string>${serviceName}</string>
 			<key>ProgramArguments</key>
 			<array>
-					<string>${$binaryPath}</string>
+					<string>${binaryPath}</string>
 					<string>${filevault_username}</string>
 			</array>
 			<key>OnDemand</key>
@@ -61,9 +61,8 @@ function createLaunchDaemon() {
 		</dict>
 	</plist>
 	LDAEMON
-	ensureRightAccess ${launchDaemonPath}
-	chown root:wheel $binaryPath
-	chmod ugo=r $binaryPath
+	chown root:wheel $launchDaemonPath
+	chmod ugo=r $launchDaemonPath
 }
 
 function enableLaunchDaemon() {
@@ -80,7 +79,7 @@ function createLaunchdService() {
 
 function configure_system() {
 	lop -y h1 -- -i 'Allow only Filevault user to unlock disk'
-	local binaryPath = '/usr/local/bin/ensure-single-filevault-user'
+	local binaryPath='/usr/local/bin/ensure-single-filevault-user'
 	indicateActivity -- 'Create ensurer binary' createEnsurerBinary
 	createLaunchdService
 }

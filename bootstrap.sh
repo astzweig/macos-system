@@ -11,7 +11,7 @@ function majorMinor() {
 
 function shouldInstallCommandLineTools() {
 	local macosVersion=$(majorMinor $(/usr/bin/sw_vers -productVersion))
-	if version_gt "${macosVersion}" "10.13"
+	if versionGT "${macosVersion}" "10.13"
 	then
 		! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
 	else
