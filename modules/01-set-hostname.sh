@@ -70,7 +70,6 @@ function getUsage() {
 	Options:
 	  --hostname NAME          Set NAME as current host's host name.
 		--timezone ZONE          Set ZONE as current host's timezone [default: Europe/Berlin].
-	  --noninteractive         Run module noninteractively.
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	----

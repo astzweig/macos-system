@@ -114,8 +114,6 @@ function main() {
 	  -l, --list               List modules that are going to be installed and
 	                           exit without installation. Modules are printed in
 	                           minimal but still distinct paths.
-	  --noninteractive         Run the installation noninteractively. In this case
-	                           a config file must be provided.
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	  --config-only PATH       Ask module questions, generate config at PATH and
