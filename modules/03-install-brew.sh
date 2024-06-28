@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# vi: ft=zsh
+# vi: set ft=zsh tw=80 ts=2
 
 export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1

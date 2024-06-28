@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# vi: set expandtab ft=zsh tw=80 ts=2
+# vi: set ft=zsh tw=80 ts=2
 
 function versionGT() {
   [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]

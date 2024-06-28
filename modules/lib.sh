@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# vi: set ft=zsh tw=80 ts=2
 
 function autoloadZShLib() {
   test -d "${ASTZWEIG_ZSHLIB}" || { echo "This module needs astzweig/zshlib to work." >&2; return 99 }

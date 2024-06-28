@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# vi: ft=zsh
+# vi: set ft=zsh tw=80 ts=2
 
 function installMASApp() {
   local currentUser="`who am i | cut -d' ' -f1`"
