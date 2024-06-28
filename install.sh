@@ -61,6 +61,7 @@ function installModules() {
     filterPasswordOptions
     [[ "${verbose}" == true ]] && moduleOptions+=(-v)
     [[ -n ${logfile} ]] && moduleOptions+=(-d ${logfile})
+    [[ -n ${noninteractive} ]] && moduleOptions+=(--noninteractive)
     lop -- -d "Running ${mod}" -d "with ${#moduleOptions} args:" -d "${filteredOptions}"
     runModule ${mod} ${moduleOptions}
   done
@@ -114,6 +115,8 @@ function main() {
 	  -l, --list               List modules that are going to be installed and
 	                           exit without installation. Modules are printed in
 	                           minimal but still distinct paths.
+	  --noninteractive         Run the installation noninteractively. In this case
+	                           a config file must be provided.
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	  --config-only PATH       Ask module questions, generate config at PATH and
@@ -129,6 +132,8 @@ function main() {
   configureLogging
   lop -- -d "Current working dir is: `pwd`"
   lop -- -d "Called main with $# args: $*"
+
+  [[ -n ${noninteractive} && -z ${config} ]] && { lop -- -e 'A config file must be provided in noninteractive mode.'; return 10 }
 
   modpath+=("${_DIR}/modules")
   loadModules -v modulesToInstall ${$(echo -m):^^modpath} "${module[@]}"
