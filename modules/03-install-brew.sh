@@ -105,20 +105,20 @@ function createBrewCallerScript() {
   [ -f "${brewCallerPath}" ] && rm "${brewCallerPath}"
   cat <<- BREWCALLER > ${brewCallerPath}
 	#!/usr/bin/env zsh
-	if [ \"\$(id -un)\" != \"${username}\" ]; then
+	if [ "\$(id -un)" != "${username}" ]; then
 	  echo 'brew will be run as ${username} user.' >&2
-	  sudo -E -u \"${username}\" \"\$0\" \"\$@\"
+	  sudo -E -u "${username}" "\$0" "\$@"
 	  exit \$?
 	fi
-	export HOMEBREW_CACHE=\"${homebrew_cache}\"
-	export HOMEBREW_LOGS=\"${homebrew_log}\"
-	export HOMEBREW_CASK_OPTS=\"--no-quarantine \${HOMEBREW_CASK_OPTS}\"
+	export HOMEBREW_CACHE="${homebrew_cache}"
+	export HOMEBREW_LOGS="${homebrew_log}"
+	export HOMEBREW_CASK_OPTS="--no-quarantine \${HOMEBREW_CASK_OPTS}"
 	export HOMEBREW_NO_AUTO_UPDATE=1
 	export HOMEBREW_NO_ANALYTICS=1
 	export HOMEBREW_NO_ANALYTICS_THIS_RUN=1
 	export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 	umask 002
-	\"$(getHomebrewRepositoryPath)/bin/brew\" \"\$@\"
+	"$(getHomebrewRepositoryPath)/bin/brew" "\$@"
 	BREWCALLER
   chown ${username}:admin ${brewCallerPath}
   chmod ug+x,o-x ${brewCallerPath}
