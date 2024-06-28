@@ -107,9 +107,7 @@ function createLaunchDaemon() {
 	      <key>com.apple.iokit.matching</key>
 	      <dict>
 	        <key>com.apple.device-attach</key>
-	        <dict>
             $(getProductPlistDict)
-	        </dict>
 	      </dict>
 	    </dict>
 	  </dict>
