@@ -172,18 +172,6 @@ function installHomebrewUpdater() {
   return
 }
 
-function tapHomebrewCask() {
-  /usr/local/bin/brew tap homebrew/cask ${git_homebrew_cask_remote} >&! /dev/null
-}
-
-function tapHomebrewCaskFonts() {
-  /usr/local/bin/brew tap homebrew/cask-fonts ${git_homebrew_font_remote} >&! /dev/null
-}
-
-function tapHomebrewCaskDrivers() {
-  /usr/local/bin/brew tap homebrew/cask-drivers ${git_homebrew_driver_remote} >&! /dev/null
-}
-
 function configure_system() {
   lop -y h1 -- -i 'Install System Homebrew'
   createHomebrewUserIfNeccessary || return 10
@@ -194,11 +182,6 @@ function configure_system() {
   indicateActivity 'Install Homebrew core' installHomebrewCore || return 15
   indicateActivity 'Create brew caller script' createBrewCallerScript || return 16
   indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 17
-  pushd -q /
-  indicateActivity 'Tapping homebrew/cask' tapHomebrewCask
-  indicateActivity 'Tapping homebrew/cask-fonts' tapHomebrewCaskFonts
-  indicateActivity 'Tapping homebrew/cask-drivers' tapHomebrewCaskDrivers
-  popd -q
 }
 
 function getExecPrerequisites() {
@@ -230,26 +213,11 @@ function getDefaultHomebrewLogPath() {
   print -- /var/log/Homebrew
 }
 
-function getDefaultGitHomebrewCaskURL() {
-  print -- ${HOMEBREW_BREW_CASK_GIT_REMOTE:-https://github.com/Homebrew/homebrew-cask.git}
-}
-
-function getDefaultGitHomebrewCaskFontsURL() {
-  print -- ${HOMEBREW_BREW_CASK_FONTS_GIT_REMOTE:-https://github.com/Homebrew/homebrew-cask-fonts.git}
-}
-
-function getDefaultGitHomebrewCaskDriversURL() {
-  print -- ${HOMEBREW_BREW_CASK_DRIVERS_GIT_REMOTE:-https://github.com/Homebrew/homebrew-cask-drivers.git}
-}
-
 function getQuestions() {
   questions=(
     'i: homebrew-username=What shall the Homebrew user'\''s username be? # default:'"$(getDefaultHomebrewUsername)"
     'i: homebrew-cache=What shall the Homebrew cache directory be? # default:'"$(getDefaultHomebrewCachePath)"
     'i: homebrew-log=What shall the Homebrew log directory be? # default:'"$(getDefaultHomebrewLogPath)"
-    'i: git-homebrew-cask-remote=Which Git repository shall be used to install Homebrew cask from? # default:'"$(getDefaultGitHomebrewCaskURL)"
-    'i: git-homebrew-font-remote=Which Git repository shall be used to install Homebrew cask-fonts from? # default:'"$(getDefaultGitHomebrewCaskFontsURL)"
-    'i: git-homebrew-driver-remote=Which Git repository shall be used to install Homebrew cask-drivers from? # default:'"$(getDefaultGitHomebrewCaskDriversURL)"
   )
 }
 
@@ -257,16 +225,13 @@ function getUsage() {
   read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE] --homebrew-username NAME --homebrew-cache PATH --homebrew-log PATH --git-homebrew-cask-remote URL --git-homebrew-font-remote URL --git-homebrew-driver-remote URL
+	  $cmdName [-v] [-d FILE] --homebrew-username NAME --homebrew-cache PATH --homebrew-log PATH
 
 	Create a designated Homebrew user who may not login to the system but is the
 	only one able to install homebrew software systemwide. Install Homebrew at
 	given PREFIX and make the new Homebrew user the owner of that.
 
 	Options:
-	  --git-homebrew-cask-remote URL    Git URL to the Homebrew cask repository [default: $(getDefaultGitHomebrewCaskURL)].
-	  --git-homebrew-font-remote URL    Git URL to the Homebrew cask-fonts repository [default: $(getDefaultGitHomebrewCaskFontsURL)].
-	  --git-homebrew-driver-remote URL  Git URL to the Homebrew cask-drivers repository [default: $(getDefaultGitHomebrewCaskDriversURL)].
 	  --homebrew-cache PATH             Path to folder that shall be used as the
 	                                    cache for Homebrew [default: $(getDefaultHomebrewCachePath)].
 	  --homebrew-log PATH               Path to folder that shall be used as the log
