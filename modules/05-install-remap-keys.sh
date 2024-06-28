@@ -33,7 +33,7 @@ function getDataForLogitechKeyboard() {
 }
 
 function createXPCConsumer() {
-  [[ -x ${xpcConsumerPath} ]] && return 10
+  [[ -x ${xpcConsumerPath} ]] && return
   clang -framework Foundation -x objective-c -o ${xpcConsumerPath} - <<- BINARY
 	#import <Foundation/Foundation.h>
 	#include <xpc/xpc.h>
