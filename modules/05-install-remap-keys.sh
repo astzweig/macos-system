@@ -11,7 +11,7 @@ function getDataForMicrosoftKeyboard() {
   local name="$1"
   [ "$name" = "ProductID" ] && echo '0x7a5'
   [ "$name" = "VendorID" ] && echo '0x45e'
-  [ "$name" = "LaunchdServiceName"] && echo 'de.astzweig.macos.launchdaemons.microsoft-keymapper'
+  [ "$name" = "LaunchdServiceName" ] && echo 'de.astzweig.macos.launchdaemons.microsoft-keymapper'
   [ "$name" = "BinaryName" ] && echo 'remap-keys-microsoft'
   [ "$name" = "KeyMappings" ] && cat <<- KEYMAPPINGS
 	  {"HIDKeyboardModifierMappingSrc": 0x700000065, "HIDKeyboardModifierMappingDst": 0x7000000e7},
@@ -24,7 +24,7 @@ function getDataForLogitechKeyboard() {
   local name="$1"
   [ "$name" = "ProductID" ] && echo '0xc52b'
   [ "$name" = "VendorID" ] && echo '0x46d'
-  [ "$name" = "LaunchdServiceName"] && echo 'de.astzweig.macos.launchdaemons.logitech-keymapper'
+  [ "$name" = "LaunchdServiceName" ] && echo 'de.astzweig.macos.launchdaemons.logitech-keymapper'
   [ "$name" = "BinaryName" ] && echo 'remap-keys-logitech'
   [ "$name" = "KeyMappings" ] && cat <<- KEYMAPPINGS
 	  {"HIDKeyboardModifierMappingSrc": 0x7000000e6, "HIDKeyboardModifierMappingDst": 0x7000000e7},
