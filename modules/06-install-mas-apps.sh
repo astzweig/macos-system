@@ -2,47 +2,47 @@
 # vi: set ft=zsh tw=80 ts=2
 
 function installMASApp() {
-  local currentUser="`who am i | cut -d' ' -f1`"
-  local appName="$1"
-  local id="$2"
-  indicateActivity -- "Install ${appName} app" sudo -u ${currentUser} mas install ${id}
+	local currentUser="`who am i | cut -d' ' -f1`"
+	local appName="$1"
+	local id="$2"
+	indicateActivity -- "Install ${appName} app" sudo -u ${currentUser} mas install ${id}
 }
 
 function configure_system() {
-  lop -y h1 -- -i 'Install Mac AppStore Apps'
-  installMASApp Keka 470158793
+	lop -y h1 -- -i 'Install Mac AppStore Apps'
+	installMASApp Keka 470158793
 
-  if ! isDebug; then
-    installMASApp Pages 409201541
-    installMASApp Numbers 409203825
+	if ! isDebug; then
+		installMASApp Pages 409201541
+		installMASApp Numbers 409203825
 
-    installMASApp Outbank 1094255754
+		installMASApp Outbank 1094255754
 
-    installMASApp 'Final Cut Pro' 424389933
-    installMASApp GarageBand 682658836
-    installMASApp Motion 434290957
-    installMASApp Compressor 424390742
-    installMASApp 'Logic Pro' 634148309
-  fi
+		installMASApp 'Final Cut Pro' 424389933
+		installMASApp GarageBand 682658836
+		installMASApp Motion 434290957
+		installMASApp Compressor 424390742
+		installMASApp 'Logic Pro' 634148309
+	fi
 }
 
 function getExecPrerequisites() {
-  cmds=(
-    [mas]=''
-    [sudo]=''
-    [who]=''
-    [cut]=''
-  )
+	cmds=(
+		[mas]=''
+		[sudo]=''
+		[who]=''
+		[cut]=''
+	)
 }
 
 function getQuestions {
-  questions=(
-    'c: logged-in=Have you ensured a user is logged in to the macOS App Store?'
-  )
+	questions=(
+		'c: logged-in=Have you ensured a user is logged in to the macOS App Store?'
+	)
 }
 
 function getUsage() {
-  read -r -d '' text <<- USAGE
+	read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
 	  $cmdName [-v] [-d FILE] --logged-in ANS
@@ -59,11 +59,11 @@ function getUsage() {
 	Copyright (C) 2022 Rezart Qelibari, Astzweig GmbH & Co. KG
 	License EUPL-1.2. There is NO WARRANTY, to the extent permitted by law.
 	USAGE
-  print -- ${text}
+	print -- ${text}
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  test -f "${ASTZWEIG_MACOS_SYSTEM_LIB}" || { echo 'This module requires macos-system library. Please run again with macos-system library provieded as a path in ASTZWEIG_MACOS_SYSTEM_LIB env variable.'; return 10 }
-  source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
-  module_main $0 "$@"
+	test -f "${ASTZWEIG_MACOS_SYSTEM_LIB}" || { echo 'This module requires macos-system library. Please run again with macos-system library provieded as a path in ASTZWEIG_MACOS_SYSTEM_LIB env variable.'; return 10 }
+	source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
+	module_main $0 "$@"
 fi
