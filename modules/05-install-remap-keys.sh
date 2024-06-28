@@ -57,7 +57,6 @@ function createXPCConsumer() {
 }
 
 function getProductPlistDict() {
-  local dataProvider="$1"
   cat <<- PLISTDICT
 	<dict>
 	  <key>idProduct</key>
@@ -91,7 +90,6 @@ function createRemapKeysBinary() {
 }
 
 function createLaunchDaemon() {
-  local dataProvider="$1"
   cat > ${launchDaemonPath} <<- LDAEMON
 	<?xml version="1.0" encoding="UTF-8"?>
 	<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -110,7 +108,7 @@ function createLaunchDaemon() {
 	      <dict>
 	        <key>com.apple.device-attach</key>
 	        <dict>
-            $(getProductPlistDict $dataProvider)
+            $(getProductPlistDict)
 	        </dict>
 	      </dict>
 	    </dict>
