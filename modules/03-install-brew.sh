@@ -145,7 +145,7 @@ function createLaunchDaemonsPlist() {
 	  <key>Label</key>
 	  <string>${launcherName}</string>
 	  <key>Program</key>
-	  <string>${homebrew_prefix}/bin/brew</string>
+	  <string>/usr/local/bin/brew</string>
 	  <key>ProgramArguments</key>
 	  <array>
 	    <string>${brewCommand}</string>
