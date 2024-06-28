@@ -90,7 +90,8 @@ function ensureLocalBinFolder() {
 }
 
 function getHomebrewRepositoryPath() {
-  if [[ "${uname_machine}" == "arm64" ]]; then
+  local uname_machine=$(/usr/bin/uname -m)
+  if [[ ${uname_machine} == "arm64" ]]; then
     print -- "/opt/homebrew"
   else
     print "/usr/local/Homebrew"
