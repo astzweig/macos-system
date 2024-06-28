@@ -117,6 +117,7 @@ function createLaunchDaemon() {
 }
 
 function enableLaunchDaemon() {
+  launchctl enable system/${launchDaemonPath%.*}
   launchctl bootstrap system ${launchDaemonPath}
 }
 
