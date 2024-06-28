@@ -144,10 +144,9 @@ function createLaunchDaemonsPlist() {
 	<dict>
 		<key>Label</key>
 		<string>${launcherName}</string>
-		<key>Program</key>
-		<string>/usr/local/bin/brew</string>
 		<key>ProgramArguments</key>
 		<array>
+			<string>/usr/local/bin/brew</string>
 			<string>${brewCommand}</string>
 		</array>
 		<key>StartInterval</key>
