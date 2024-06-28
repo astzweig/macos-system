@@ -96,7 +96,7 @@ function createLaunchDaemon() {
 	<plist version="1.0">
 	  <dict>
 	    <key>Label</key>
-	    <string>${serviceName}</string>
+	    <string>$($dataProvider LaunchdServiceName)</string>
 	    <key>ProgramArguments</key>
 	    <array>
 	        <string>${xpcConsumerPath}</string>
