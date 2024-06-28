@@ -1,6 +1,59 @@
 #!/usr/bin/env zsh
 # vi: set expandtab ft=zsh tw=80 ts=2
 
+function versionGT() {
+  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
+}
+
+function majorMinor() {
+  echo "${1%%.*}.$(x="${1#*.}" echo "${x%%.*}")"
+}
+
+function shouldInstallCommandLineTools() {
+  local macosVersion=$(majorMinor $(/usr/bin/sw_vers -productVersion))
+  if version_gt "${macosVersion}" "10.13"
+  then
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+  else
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
+      ! [[ -e "/usr/include/iconv.h" ]]
+  fi
+}
+
+function removeNewlines() {
+  printf "%s" "${1/"$'\n'"/}"
+}
+
+function acceptXcodeLicense() {
+  xcodebuild -license accept
+}
+
+function installCommandLineTools() {
+  shouldInstallCommandLineTools || return
+  cltPlaceholder="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+  touch ${cltPlaceholder}
+
+  cltLabelCommand="/usr/sbin/softwareupdate -l |
+                    grep -B 1 -E 'Command Line Tools' |
+                    awk -F'*' '/^ *\\*/ {print \$2}' |
+                    sed -e 's/^ *Label: //' -e 's/^ *//' |
+                    sort -V |
+                    tail -n1"
+  cltLabel="$(removeNewlines "$(/bin/bash -c "${cltLabelCommand}")")"
+
+  if [[ -n "${cltLabel}" ]]
+  then
+    /usr/sbin/softwareupdate -i ${cltLabel}
+    /usr/bin/xcode-select --switch /Library/Developer/CommandLineTools
+  fi
+  rm -f ${cltPlaceholder}
+}
+
+function ensureCommandLineTools() {
+  installCommandLineTools
+  acceptXcodeLicense
+}
+
 function ensureDocopts() {
   which docopts > /dev/null && return
   local fileURL="${DOCOPTS_URL:-https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64}"
@@ -85,9 +138,11 @@ function main() {
   pushd -q "${tmpdir}"
   print -l "Working directory is: ${tmpdir}"
 
+  ensureCommandLineTools
   ensureRepo 'macos-system' cloneMacOSSystemRepo || return
   ensureRepo 'zshlib' cloneZSHLibRepo || return
   ensureBinary 'docopts' ensureDocopts || return
+  print 'Ensure command line tools are available.'
 
   print 'Will now run the installer.'
   local -A colors=() errColors=()
