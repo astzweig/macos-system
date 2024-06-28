@@ -121,7 +121,7 @@ function createBrewCallerScript() {
 	\"$(getHomebrewRepositoryPath)/bin/brew\" \"\$@\"
 	BREWCALLER
   chown ${username}:admin ${brewCallerPath}
-  chmod u+x,go-x ${brewCallerPath}
+  chmod ug+x,o-x ${brewCallerPath}
 }
 
 function installHomebrewCore() {
