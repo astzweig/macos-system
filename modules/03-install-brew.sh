@@ -120,8 +120,23 @@ function createBrewCallerScript() {
 	umask 002
 	"$(getHomebrewRepositoryPath)/bin/brew" "\$@"
 	BREWCALLER
-	chown ${username}:admin ${brewCallerPath}
+	chown root:admin ${brewCallerPath}
 	chmod ug+x,o-x ${brewCallerPath}
+}
+
+function createBrewPeriodicScript() {
+	ensureLocalBinFolder
+	local scriptPath="/usr/local/bin/brew-periodic"
+	[ -f "${scriptPath}" ] && rm "${scriptPath}"
+	cat <<- BREWCALLER > ${scriptPath}
+	#!/usr/bin/env zsh
+	local brew='/usr/local/bin/brew'
+	\$brew update
+	\$brew upgrade --greedy
+	\$brew cleanup
+	BREWCALLER
+	chown root:admin ${scriptPath}
+	chmod ug=rx,o=r ${scriptPath}
 }
 
 function installHomebrewCore() {
@@ -146,8 +161,7 @@ function createLaunchDaemonsPlist() {
 		<string>${launcherName}</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/usr/local/bin/brew</string>
-			<string>${brewCommand}</string>
+			<string>/usr/local/bin/brew-periodic</string>
 		</array>
 		<key>StartInterval</key>
 		<integer>1800</integer>
@@ -166,8 +180,7 @@ function createLaunchDaemonsPlist() {
 }
 
 function installHomebrewUpdater() {
-	createLaunchDaemonsPlist brew-updater update
-	createLaunchDaemonsPlist brew-upgrader upgrade
+	createLaunchDaemonsPlist brew-periodic
 	return
 }
 
@@ -180,7 +193,8 @@ function configure_system() {
 	ensureHomebrewLogDirectory || return 14
 	indicateActivity 'Install Homebrew core' installHomebrewCore || return 15
 	indicateActivity 'Create brew caller script' createBrewCallerScript || return 16
-	indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 17
+	indicateActivity 'Create brew periodic script' createBrewPeriodicScript || return 17
+	indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 18
 }
 
 function getExecPrerequisites() {
