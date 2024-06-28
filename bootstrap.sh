@@ -138,11 +138,11 @@ function main() {
   pushd -q "${tmpdir}"
   print -l "Working directory is: ${tmpdir}"
 
+  print 'Ensure command line tools are available.'
   ensureCommandLineTools
   ensureRepo 'macos-system' cloneMacOSSystemRepo || return
   ensureRepo 'zshlib' cloneZSHLibRepo || return
   ensureBinary 'docopts' ensureDocopts || return
-  print 'Ensure command line tools are available.'
 
   print 'Will now run the installer.'
   local -A colors=() errColors=()
