@@ -2,9 +2,6 @@
 # vi: set ft=zsh tw=80 ts=2
 
 function getQuestionsPrerequisites() {
-	cmds=(
-		[systemsetup]=''
-	)
 	requireRootPrivileges
 }
 
@@ -21,46 +18,15 @@ function getExecPrerequisites() {
 	)
 }
 
-function getQuestions() {
-	local timezones
-	timezones="`systemsetup -listtimezones | tail -n +2 | awk '{print $1}' | paste -sd, -`"
-	questions=(
-		'i: hostname=What shall the hostname of this host be?'
-		's: timezone=What shall the timezone of this host be? # choose from:'"${timezones};"
-	)
-}
-
 function quitSystemPreferences() {
- indicateActivity -- 'Quitting System Preferences' osascript -e 'tell application "System Preferences" to quit'
-}
-
-function setComputerName() {
-	scutil --set ComputerName "${hostname}"
-	scutil --set HostName "${hostname}"
-	scutil --set LocalHostName "${hostname}"
-	systemsetup -setcomputername "${hostname}"
-	systemsetup -setlocalsubnetname "${hostname}"
-}
-
-function configureComputerHostname() {
-	local currentComputerName="`scutil --get ComputerName`"
-	if [[ "${currentComputerName}" != "${hostname}" ]]; then
-		lop -- -i 'Hostname of computer has not been set.' -i "Will set to ${hostname}."
-		indicateActivity -- 'Set computer name' setComputerName
-	else
-		lop -- -i 'Hostname of computer seems to have already been set. Skipping.' -i "Hostname: $currentComputerName"
-	fi
+	ps -A -o pid,comm | grep "MacOS/System Settings" | awk '{print "kill -9 " $1}' | /bin/sh
 }
 
 function configureBasicSystem(){
-	# Disable the sound effects on boot
-	nvram SystemAudioVolume=" "
-
-	systemsetup -settimezone "${timezone}" >&! /dev/null
 	systemsetup -setusingnetworktime on >&! /dev/null
 	systemsetup -setnetworktimeserver 'time.apple.com' >&! /dev/null
 	systemsetup -setsleep never >&! /dev/null
-	systemsetup -setwakeonnetworkaccess off >&! /dev/null
+	systemsetup -setwakeonnetworkaccess on >&! /dev/null
 	systemsetup -setrestartfreeze on >&! /dev/null
 	systemsetup -f -setremotelogin off >&! /dev/null
 	systemsetup -setremoteappleevents off >&! /dev/null
@@ -101,8 +67,7 @@ function configureMacOSFirewall() {
 
 function configure_system() {
 	lop -y h1 -- -i 'Configure System Settings'
-	quitSystemPreferences
-	configureComputerHostname
+	indicateActivity -- 'Quitting System Preferences' quitSystemPreferences
 	indicateActivity -- 'Configuring systemsetup and nvram' configureBasicSystem
 	indicateActivity -- 'Configuring power management' configurePowerManagement
 	indicateActivity -- 'Configuring login window' configureLoginWindow
@@ -115,13 +80,11 @@ function getUsage() {
 	read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE] --hostname NAME --timezone ZONE
+	  $cmdName [-v] [-d FILE]
 
-	Set energy, basic network and host preferences.
+	Set energy, network and basic preferences.
 
 	Options:
-	  --hostname NAME          Set NAME as current host's host name.
-	  --timezone ZONE          Set ZONE as current host's timezone [default: Europe/Berlin].
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	----
