@@ -145,7 +145,6 @@ function main() {
 	ensureBinary 'docopts' ensureDocopts || return
 
 	print 'Will now run the installer.'
-	local -A colors=() errColors=()
 	[ -t 1 ] && tput cnorm
 	isDebug && export MACOS_SYSTEM_DEBUG=true
 	"${tmpdir}/install.sh" "$@"

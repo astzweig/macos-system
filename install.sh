@@ -132,8 +132,6 @@ function main() {
 	lop -- -d "Current working dir is: `pwd`"
 	lop -- -d "Called main with $# args: $*"
 
-	[[ -n ${noninteractive} && -z ${config} ]] && { lop -- -e 'A config file must be provided in noninteractive mode.'; return 10 }
-
 	[[ ${host_specific_only} == 'false' ]] && modpath+=("${_DIR}/modules")
 	[[ ${host_specific} == 'true' || ${host_specific_only} == 'true' ]] && modpath+=("${_DIR}/modules/host-specific")
 	loadModules -v modulesToInstall ${$(echo -m):^^modpath} "${module[@]}"
