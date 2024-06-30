@@ -95,8 +95,8 @@ function printFailedWithError() {
 
 function defineColors() {
 	local -A colorCodes=(red "`tput setaf 9`" green "`tput setaf 10`" reset "`tput sgr0`")
-	[ -t 1 ] && colors=("${(kv)colorCodes[@]}")
-	[ -t 2 ] && errColors=("${(kv)colorCodes[@]}")
+	[ -t 1 ] && colors=( ${(kv)colorCodes} )
+	[ -t 2 ] && errColors=( ${(kv)colorCodes} )
 }
 
 function ensureRepo() {
