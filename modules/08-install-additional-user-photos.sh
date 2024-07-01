@@ -48,9 +48,10 @@ function configure_system() {
 
 function getExecPrerequisites() {
 	cmds=(
-		[git]=''
+		[find]=''
+		[chown]=''
+		[cp]=''
 	)
-	re
 }
 
 function getDefaultUserPictureFolderPath() {
