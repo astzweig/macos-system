@@ -17,6 +17,9 @@ Scripts to align a macOS system to Astzweig system configuration.
 1. If the configuration file does not have those informations, it asks the user.
 1. `install.sh` then runs the modules with their required informations passed in as parameter values.
 
+## License exclusion
+The license does not cover the file [Astzweig.png](resources/user-pictures/Astzweig.png).
+
 ## Required Information Format
 Modules must print their required information to stdout if they're called with
 `show-questions` command. Required information are all information the module
