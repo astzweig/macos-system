@@ -16,6 +16,18 @@ function isDebug() {
 	test "${MACOS_SYSTEM_DEBUG}" = true -o "${MACOS_SYSTEM_DEBUG}" = 1
 }
 
+function ensureLocalBinFolder() {
+  local folder="/usr/local/bin"
+  if [[ ! -d "${folder}" ]]; then
+    mkdir -p "${folder}" 2> /dev/null || {
+      lop -- -e 'Could not create directory' -e $folder
+      return 10
+    }
+    chown root:admin "${folder}"
+    chmod ug=rwx,o=rx "${folder}"
+  fi
+}
+
 function configureLogging() {
 	local output=tostdout level=info
 	[ -n "${logfile}" ] && output=${logfile}
