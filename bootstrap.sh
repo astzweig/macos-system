@@ -30,6 +30,10 @@ function printOrLog() {
   fi
 }
 
+function isOnMacOS() {
+  [[ $(uname) == Darwin ]]
+}
+
 # ==========================
 # Install Command Line Tools
 # ==========================
@@ -40,10 +44,6 @@ function versionGT() {
 
 function majorMinor() {
 	echo "${1%%.*}.$(x="${1#*.}" echo "${x%%.*}")"
-}
-
-function isOnMacOS() {
-  [[ $(uname) == Darwin ]]
 }
 
 function shouldInstallCommandLineTools() {
@@ -87,7 +87,6 @@ function installCommandLineTools() {
 }
 
 function ensureCommandLineTools() {
-  isOnMacOS || return
 	installCommandLineTools
 	acceptXcodeLicense
 }
@@ -164,6 +163,7 @@ function main() {
 	defineColors
 
 	configureTerminal
+  isOnMacOS || { printError 'This library is only supported on macOS.'; return 10 }
 	local tmpdir="`mktemp -d -t 'macos-system'`"
 	isDebug || traps+=("rm -fr -- '${tmpdir}'")
 	trap ${(j.;.)traps} INT TERM EXIT
