@@ -1,47 +1,20 @@
 #!/usr/bin/env zsh
 # vi: set ft=zsh tw=80 ts=2
 
-function addLibToStartupFile() {
-}
-
 function installZshlib() {
-	local zshlibPath=${libDir}/astzweig_zshlib
-	if [[ -d ${ASTZWEIG_ZSHLIB} ]]; then
-		pushd -q ${ASTZWEIG_ZSHLIB}
-		zcompile -z -U ${zshlibPath} $(find . -type f -perm +u=x -maxdepth 1)
-		libs+=(${zshlibPath}.zwc)
-		popd -q
-	elif [[ -f ${ASTZWEIG_ZSHLIB} ]]; then
-		cp ${ASTZWEIG_ZSHLIB} ${zshlibPath}.zwc;
-	fi
-	chmod ugo=r ${zshlibPath}.zwc
-}
-
-function modifyGlobalFpath() {
-	local startupFile=/etc/zshenv
-	cat ${startupFile} | grep "${(q)libs}" >&! /dev/null && return
-	print -- "fpath+=(${(q)libs})" >> ${startupFile}
-	chown root:wheel ${startupFile}
-	chmod u=rw,go=r ${startupFile}
+	/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/astzweig/zshlib/main/bootstrap.sh)"
+  [[ -f '/usr/local/share/zsh/site-functions/zshlib.zwc' ]]
 }
 
 function configure_system() {
-	lop -y h1 -- -i 'Install ZSh Libraries'
-	local libDir=/usr/local/share/zsh/site-functions
-	local libs=()
-	ensurePathOrLogError ${libDir} 'Could not install zsh libraries.' || return 10
-	lop -- -d "ASTZWEIG_ZSHLIB is ${ASTZWEIG_ZSHLIB}"
+	lop -y h1 -- -i 'Install ZSh Library'
 	indicateActivity 'Install zshlib' installZshlib
-	indicateActivity 'Modify global fpath' modifyGlobalFpath
 }
 
 function getExecPrerequisites() {
 	cmds=(
-		[cat]=''
-		[grep]=''
-		[chown]=''
-		[chmod]=''
-		[install]=''
+		[zsh]=''
+		[curl]=''
 	)
 }
 
