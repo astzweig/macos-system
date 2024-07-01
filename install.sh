@@ -139,7 +139,7 @@ function main() {
 
 	askNecessaryQuestions
 	[ -z "${config_only}" ] || return 0
-	requireRootPrivileges
+	requireRootPrivileges || return 10
 	installModules
 }
 
