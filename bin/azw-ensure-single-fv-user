@@ -1,0 +1,36 @@
+#!/usr/bin/env zsh
+# vi: set ft=zsh tw=80 ts=2
+
+function main {
+	local username="\$1"
+
+	function doesFilevaultUserExist() {
+		dscl . -list /Users | grep \${username} >&! /dev/null
+	}
+
+	function isFilevaultUserEnabled() {
+		fdesetup list | grep \${username} &> /dev/null
+	}
+
+	function isFilevaultEnabled() {
+		fdesetup status | grep On &> /dev/null
+	}
+
+	function allowOnlyFilevaultUserToUnlock() {
+		local fdeuser
+		for fdeuser in \${(f)"\$(fdesetup list | cut -d',' -f1)"}; do
+		 [[ \${fdeuser} != \${username} ]] && fdesetup remove -user "\${fdeuser}"
+		done
+		return 0
+	}
+
+	[[ \$(id -un) == 'root' ] || { lop -- -e 'This script needs to be run by root. Aborting.'; return }
+	isFilevaultEnabled || { lop -- -e 'FileVault is disabled. Aborting.'; return }
+	doesFilevaultUserExist && isFilevaultUserEnabled && allowOnlyFilevaultUserToUnlock
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
+	_DIR="${0:A:h}"
+	autoload -w zshlib
+	main "$@"
+fi

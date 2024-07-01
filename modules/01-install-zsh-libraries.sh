@@ -11,7 +11,7 @@ function createLaunchDaemon() {
 			<string>${serviceName}</string>
 			<key>ProgramArguments</key>
 			<array>
-					<string>azw</string>
+					<string>/usr/local/bin/azw</string>
 					<string>update-zsh-libraries</string>
 			</array>
 			<key>StartCalendarInterval</key>

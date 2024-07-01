@@ -5,42 +5,6 @@ function getDefaultFilevaultUsername() {
 	print 'azwdevice'
 }
 
-function createEnsurerBinary() {
-	[[ -x $binaryPath ]] && return
-	cat > $binaryPath <<- BINARY
-	#!/usr/bin/env zsh
-	function {
-		local username="\$1"
-
-		function doesFilevaultUserExist() {
-			dscl . -list /Users | grep \${username} >&! /dev/null
-		}
-
-		function isFilevaultUserEnabled() {
-			fdesetup list | grep \${username} &> /dev/null
-		}
-
-		function isFilevaultEnabled() {
-			fdesetup status | grep On &> /dev/null
-		}
-
-		function allowOnlyFilevaultUserToUnlock() {
-			local fdeuser
-			for fdeuser in \${(f)"\$(fdesetup list | cut -d',' -f1)"}; do
-			 [[ \${fdeuser} != \${username} ]] && fdesetup remove -user "\${fdeuser}"
-			done
-			return 0
-		}
-
-		[[ \$(id -un) == 'root' ] || return
-		isFilevaultEnabled || return
-		doesFilevaultUserExist && isFilevaultUserEnabled && allowOnlyFilevaultUserToUnlock
-	}
-	BINARY
-	chown root:wheel $binaryPath
-	chmod ug=rx,o=r $binaryPath
-}
-
 function createLaunchDaemon() {
 	cat > ${launchDaemonPath} <<- LDAEMON
 	<?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +15,8 @@ function createLaunchDaemon() {
 			<string>${serviceName}</string>
 			<key>ProgramArguments</key>
 			<array>
-					<string>${binaryPath}</string>
+					<string>/usr/local/bin/azw</string>
+					<string>ensure-single-fv-user</string>
 					<string>${filevault_username}</string>
 			</array>
 			<key>OnDemand</key>
@@ -79,8 +44,6 @@ function createLaunchdService() {
 
 function configure_system() {
 	lop -y h1 -- -i 'Allow only Filevault user to unlock disk'
-	local binaryPath='/usr/local/bin/ensure-single-filevault-user'
-	indicateActivity -- 'Create ensurer binary' createEnsurerBinary
 	createLaunchdService
 }
 
