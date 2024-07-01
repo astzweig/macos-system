@@ -134,7 +134,8 @@ function main() {
 
 	[[ ${host_specific_only} == 'false' ]] && modpath+=("${_DIR}/modules")
 	[[ ${host_specific} == 'true' || ${host_specific_only} == 'true' ]] && modpath+=("${_DIR}/modules/host-specific")
-	loadModules -v modulesToInstall ${$(echo -m):^^modpath} "${module[@]}"
+  { [[ ${inverse} == true ]] && inverse=-i } || inverse=
+	loadModules -v modulesToInstall ${$(echo -m):^^modpath} ${inverse} "${module[@]}"
 	[ "${list}" = true ] && printModulesToInstall
 
 	askNecessaryQuestions
