@@ -1,29 +1,55 @@
 #!/usr/bin/env zsh
 # vi: set ft=zsh tw=80 ts=2
 
-function installZshlib() {
-	/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/astzweig/zshlib/main/bootstrap.sh)"
-  [[ -f '/usr/local/share/zsh/site-functions/zshlib.zwc' ]]
+function createLaunchDaemon() {
+	cat > ${launchDaemonPath} <<- LDAEMON
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+		<dict>
+			<key>Label</key>
+			<string>${serviceName}</string>
+			<key>ProgramArguments</key>
+			<array>
+					<string>azw</string>
+					<string>update-zsh-libraries</string>
+			</array>
+			<key>StartCalendarInterval</key>
+			<dict>
+					<key>Hour</key>
+					<integer>11</integer>
+					<key>Minute</key>
+					<integer>22</integer>
+			</dict>
+		</dict>
+	</plist>
+	LDAEMON
+	chown root:wheel ${launchDaemonPath}
+	chmod ugo=rx ${launchDaemonPath}
 }
 
-function installMacOSSystemLibrary() {
-  ensureLocalBinFolder
-  local destPath=/usr/local/bin/macos-system-lib.sh
-  cp ${ASTZWEIG_MACOS_SYSTEM_LIB} $destPath
-  chown root:admin $destPath
-  chmod ugo=r $destPath
+function enableLaunchDaemon() {
+	launchctl enable system/${launchDaemonPath%.*}
+	launchctl bootstrap system ${launchDaemonPath}
+}
+
+function createLaunchdService() {
+	local serviceName="de.astzweig.macos.launchdaemons.zsh-library-updater"
+	local launchDaemonPath="/Library/LaunchDaemons/${serviceName}.plist"
+	[[ -f ${launchDaemonPath} ]] || indicateActivity -- 'Create Launch Daemon' createLaunchDaemon
+	indicateActivity -- 'Enable Launch Daemon' enableLaunchDaemon
 }
 
 function configure_system() {
 	lop -y h1 -- -i 'Install ZSh Library'
-	indicateActivity -- 'Install zshlib' installZshlib
-	indicateActivity -- 'Install macos-system library' installMacOSSystemLibrary
+	indicateActivity -- 'Install zsh libraries' azw update-zsh-libraries
+	createLaunchdService
 }
 
 function getExecPrerequisites() {
 	cmds=(
-		[zsh]=''
-		[curl]=''
+		[azw]=''
+		[azw-update-zsh-libraries]=''
 	)
 }
 
