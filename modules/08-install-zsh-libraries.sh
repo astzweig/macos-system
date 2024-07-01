@@ -6,9 +6,18 @@ function installZshlib() {
   [[ -f '/usr/local/share/zsh/site-functions/zshlib.zwc' ]]
 }
 
+function installMacOSSystemLibrary() {
+  ensureLocalBinFolder
+  local destPath=/usr/local/bin/macos-system-lib.sh
+  cp ${ASTZWEIG_MACOS_SYSTEM_LIB} $destPath
+  chown root:admin $destPath
+  chmod ugo=r $destPath
+}
+
 function configure_system() {
 	lop -y h1 -- -i 'Install ZSh Library'
-	indicateActivity 'Install zshlib' installZshlib
+	indicateActivity -- 'Install zshlib' installZshlib
+	indicateActivity -- 'Install macos-system library' installMacOSSystemLibrary
 }
 
 function getExecPrerequisites() {
