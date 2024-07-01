@@ -1,12 +1,49 @@
 #!/usr/bin/env zsh
 # vi: set ft=zsh tw=80 ts=2
 
+# =================
+# Utility Functions
+# =================
+
+function isDebug() {
+  [[ ${DEBUG} == true || ${DEBUG} == 1 ]]
+}
+
+function printSuccess() {
+  printOrLog "${colors[green]}${*}${colors[reset]}"
+}
+
+function printError() {
+  printOrLog "${errColors[red]}${*}${errColors[reset]}" >&2
+}
+
+function printFailedWithError() {
+  printOrLog "${colors[red]}failed.${colors[reset]}"
+  printOrLog "$*" >&2
+}
+
+function printOrLog() {
+  if [[ -t 1 ]]; then
+    print "$@"
+  else
+    logger -t zshlib_bootstrap_sh "$@"
+  fi
+}
+
+# ==========================
+# Install Command Line Tools
+# ==========================
+
 function versionGT() {
 	[[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
 }
 
 function majorMinor() {
 	echo "${1%%.*}.$(x="${1#*.}" echo "${x%%.*}")"
+}
+
+function isOnMacOS() {
+  [[ $(uname) == Darwin ]]
 }
 
 function shouldInstallCommandLineTools() {
@@ -25,7 +62,7 @@ function removeNewlines() {
 }
 
 function acceptXcodeLicense() {
-	xcodebuild -license accept
+	xcodebuild -license accept 2> /dev/null
 }
 
 function installCommandLineTools() {
@@ -50,9 +87,14 @@ function installCommandLineTools() {
 }
 
 function ensureCommandLineTools() {
+  isOnMacOS || return
 	installCommandLineTools
 	acceptXcodeLicense
 }
+
+# ==================
+# Download Resources
+# ==================
 
 function ensureDocopts() {
 	which docopts > /dev/null && return
@@ -76,41 +118,20 @@ function cloneZSHLibRepo() {
 	git submodule -q update --depth 1 --init --recursive --remote 2> /dev/null || return 10
 }
 
-function isDebug() {
-	test "${DEBUG}" = true -o "${DEBUG}" = 1
+function downloadZSHLibWordCodeFromGithub() {
+  local apiURL=${ZSHLIB_RELEASE_API_URL:-https://api.github.com/repos/astzweig/zshlib/releases/latest}
+  local zwcURL=`curl -s $apiURL |  python3 -c 'import json,sys;print(json.load(sys.stdin)["assets"][0]["browser_download_url"])' 2> /dev/null`
+  curl --output ./zshlib.zwc -fsSL "${zwcURL}" || return 10
 }
 
-function printSuccess() {
-	print "${colors[green]}${*}${colors[reset]}"
-}
-
-function printError() {
-	print "${errColors[red]}${*}${errColors[reset]}" >&2
-}
-
-function printFailedWithError() {
-	print "${colors[red]}failed.${colors[reset]}"
-	print "$*" >&2
-}
+# ====
+# Main
+# ====
 
 function defineColors() {
 	local -A colorCodes=(red "`tput setaf 9`" green "`tput setaf 10`" reset "`tput sgr0`")
 	[ -t 1 ] && colors=( ${(kv)colorCodes} )
 	[ -t 2 ] && errColors=( ${(kv)colorCodes} )
-}
-
-function ensureRepo() {
-	local repoName="$1" cmdName="${2}"
-	print -n "Installing ${1}..."
-	$cmdName || { printFailedWithError "This script requires $repoName but was not able to clone it. Please ensure access to the $repoName repository."; return 10}
-	printSuccess 'done'
-}
-
-function ensureBinary() {
-	local binaryName="$1" cmdName="${2}"
-	print -n "Ensure ${1} is installed..."
-	$cmdName || { printFailedWithError "This script requires $binaryName but was neither able to locate and install it. Please install $binaryName and add it to one of the PATH directories."; return 10}
-	printSuccess 'done'
 }
 
 function configureTerminal() {
@@ -124,6 +145,17 @@ function configureTerminal() {
 		tput civis
 		export TERMINAL_CURSOR_HIDDEN=true
 	fi
+}
+
+function ensure() {
+  local itemType=$1 itemName=$2 itemCmd=$3
+  print -n "Installing ${itemName}..."
+  if [[ $itemType == 'repo' ]]; then
+    $itemCmd || { printFailedWithError "This script requires $itemName but was not able to clone it. Please ensure access to the $itemName repository."; return 10}
+  else
+    $itemCmd || { printFailedWithError "This script requires $itemName but was neither able to locate or install it. Please install $itemName and add it to one of the PATH directories."; return 10}
+  fi
+  printSuccess 'done'
 }
 
 function main() {
@@ -140,9 +172,9 @@ function main() {
 
 	print 'Ensure command line tools are available.'
 	ensureCommandLineTools
-	ensureRepo 'macos-system' cloneMacOSSystemRepo || return
-	ensureRepo 'zshlib' cloneZSHLibRepo || return
-	ensureBinary 'docopts' ensureDocopts || return
+	ensure 'repo' 'macos-system' cloneMacOSSystemRepo || return
+	ensure 'binary' 'zshlib' downloadZSHLibWordCodeFromGithub || return
+	ensure 'binary' 'docopts' ensureDocopts || return
 
 	print 'Will now run the installer.'
 	[ -t 1 ] && tput cnorm

@@ -146,7 +146,7 @@ function main() {
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
 	_DIR="${0:A:h}"
 	export ASTZWEIG_MACOS_SYSTEM_LIB=${_DIR}/modules/lib.sh
-	export ASTZWEIG_ZSHLIB=${_DIR}/zshlib
+	export ASTZWEIG_ZSHLIB=${_DIR}/zshlib.zwc
 	source "${ASTZWEIG_MACOS_SYSTEM_LIB}"
 	main "$@"
 fi
