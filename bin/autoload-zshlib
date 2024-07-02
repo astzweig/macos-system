@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+# vi: set ft=zsh tw=80 ts=2
+
+function autoloadZshlib() {
+	for fp in $fpath; do
+		if [[ ${fp:t} == 'zshlib.zwc' ]]; then
+			autoload -w $fp
+			break
+		fi
+	done
+}
+
+if [[ "${ZSH_EVAL_CONTEXT}" == *file ]]; then
+	autoloadZshlib "$@"
+fi

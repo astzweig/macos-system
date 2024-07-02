@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
 # vi: set ft=zsh tw=80 ts=2
-autoload -w zshlib
 
 function buildExternCommandName() {
 	cmdName="azw-$1"
@@ -33,5 +32,6 @@ function dispatchCommand() {
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
 	_DIR="${0:A:h}"
+	source autoload-zshlib
 	dispatchCommand "$@"
 fi

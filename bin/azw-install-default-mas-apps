@@ -25,6 +25,6 @@ function main() {
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
-  autoload -w zshlib
+  source autoload-zshlib
   main "$@"
 fi
