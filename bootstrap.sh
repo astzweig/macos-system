@@ -97,7 +97,9 @@ function ensureCommandLineTools() {
 
 function ensureDocopts() {
 	which docopts > /dev/null && return
-	local fileURL="${DOCOPTS_URL:-https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64}"
+  local defaultURL="https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64"
+  [[ $(uname -m) == arm64 ]] && defaultURL="https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_arm64"
+	local fileURL="${DOCOPTS_URL:-${defaultURL}}"
 	curl --output ./docopts -fsSL "${fileURL}" || return
 	chmod u+x ./docopts
 	PATH="${PATH}:`pwd`"

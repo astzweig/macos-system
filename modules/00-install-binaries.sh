@@ -17,7 +17,9 @@ function copyUtilityBinaries() {
 function installDocopts() {
 	local destPath='/usr/local/bin/docopts'
 	[[ -x ${destPath} ]] && return
-	indicateActivity -- 'Downloading docpts' curl --output ${destPath} -fsSL ${docopts_url} || return
+	local docoptsURL="https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64"
+	[[ $(uname -m) == arm64 ]] && docoptsURL="https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_arm64"
+	indicateActivity -- 'Downloading docpts' curl --output ${destPath} -fsSL ${docoptsURL} || return
 	ensureRightAccess ${destPath}
 }
 
@@ -40,28 +42,15 @@ function getExecPrerequisites() {
 	)
 }
 
-function getDefaultDocoptsURL() {
-	local fileURL="${DOCOPTS_URL:-https://github.com/astzweig/docopts/releases/download/v.0.7.0/docopts_darwin_amd64}"
-	print -- ${fileURL}
-}
-
-function getQuestions() {
-	questions=(
-		'i: docopts-url=From which URL shall the docopts binary be downloaded? # default:'"$(getDefaultDocoptsURL)"
-	)
-}
-
 function getUsage() {
 	read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE] --docopts-url URL
+	  $cmdName [-v] [-d FILE]
 
 	Install convenient binaries for all users.
 
 	Options:
-	  --docopts-url URL        The URL from which to download the docopts binary
-	                           [default: $(getDefaultDocoptsURL)].
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	----
