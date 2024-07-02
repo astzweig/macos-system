@@ -100,7 +100,7 @@ function createLaunchDaemon() {
 			<key>ProgramArguments</key>
 			<array>
 					<string>${xpcConsumerPath}</string>
-					<string>${remapKeysPath}</string>
+					<string>${binaryPath}</string>
 			</array>
 			<key>LaunchEvents</key>
 			<dict>
