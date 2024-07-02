@@ -25,6 +25,7 @@ function installCasks() {
 		installCask synology-drive
 		installCask sf-symbols
 		installCask prizmo
+		installCask launchcontrol
 	fi
 }
 
