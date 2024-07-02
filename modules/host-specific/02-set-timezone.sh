@@ -1,22 +1,34 @@
 #!/usr/bin/env zsh
 # vi: ft=zsh
 
+function getQuestionsPrerequisites() {
+	cmds=(
+		[systemsetup]=''
+	)
+	requireRootPrivileges
+}
+
 function getExecPrerequisites() {
 	cmds=(
-    [azw]=''
-		[azw-set-hostname]=''
+		[systemsetup]=''
 	)
 }
 
 function getQuestions() {
+	local timezones
+	timezones="`systemsetup -listtimezones | tail -n +2 | awk '{print $1}' | paste -sd, -`"
 	questions=(
-		'i: hostname=What shall the hostname of this host be?'
+		's: timezone=What shall the timezone of this host be? # choose from:'"${timezones};"
 	)
 }
 
+function configureTimezone(){
+	systemsetup -settimezone "${timezone}" >&! /dev/null
+}
+
 function configure_system() {
-	lop -y h1 -- -i 'Configure System Hostname'
-	azw set-hostname --hostname ${hostname}
+	lop -y h1 -- -i 'Configure System Timezone'
+	indicateActivity -- 'Configuring timezone' configureTimezone
 }
 
 function getUsage() {
@@ -24,12 +36,12 @@ function getUsage() {
 	read -r -d '' text <<- USAGE
 	Usage:
 	  $cmdName show-questions [<modkey> <modans>]...
-	  $cmdName [-v] [-d FILE] --hostname NAME
+	  $cmdName [-v] [-d FILE] --hostname NAME --timezone ZONE
 
-	Configure hostname.
+	Configure system timezone.
 
 	Options:
-	  --hostname NAME          Set NAME as current host's host name.
+		--timezone ZONE          Set ZONE as current host's timezone [default: Europe/Berlin].
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	----
