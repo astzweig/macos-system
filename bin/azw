@@ -2,32 +2,36 @@
 # vi: set ft=zsh tw=80 ts=2
 autoload -w zshlib
 
+function buildExternCommandName() {
+	cmdName="azw-$1"
+	shift
+	while ! whence $cmdName &> /dev/null; do
+		if [[ $# -gt 0 ]]; then
+			cmdName="${cmdName}_${1}"
+			shift
+		else
+			lop -- -e "Unknown command $@."
+			return 10
+		fi
+	done
+}
+
 function dispatchToExtern() {
-	local cmdName="$1"
-	whence azw-$cmdName &> /dev/null || {
-		lop -- -e "Unknown command $cmdName."
-		exit 10
-	}
-	azw-$cmdName "$@"
+	local cmdName=
+	buildExternCommandName "$@" || return $?
+	$cmdName "$@"
 }
 
 function dispatchCommand() {
 	local cmdName="$1"
 	case $cmdName in
 		*)
-			dispatchToExtern $cmdName
+			dispatchToExtern "$@"
 			;;
 	esac
 }
 
-function main() {
-	local cmdName="$1"
-	[[ $# -gt 1 ]] && shift
-
-	dispatchCommand $cmdName
-}
-
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
 	_DIR="${0:A:h}"
-	main "$@"
+	dispatchCommand "$@"
 fi
