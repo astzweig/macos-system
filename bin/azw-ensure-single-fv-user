@@ -2,14 +2,14 @@
 # vi: set ft=zsh tw=80 ts=2
 
 function main {
-	local username="\$1"
+	local username="$1"
 
 	function doesFilevaultUserExist() {
-		dscl . -list /Users | grep \${username} >&! /dev/null
+		dscl . -list /Users | grep ${username} >&! /dev/null
 	}
 
 	function isFilevaultUserEnabled() {
-		fdesetup list | grep \${username} &> /dev/null
+		fdesetup list | grep ${username} &> /dev/null
 	}
 
 	function isFilevaultEnabled() {
@@ -18,13 +18,13 @@ function main {
 
 	function allowOnlyFilevaultUserToUnlock() {
 		local fdeuser
-		for fdeuser in \${(f)"\$(fdesetup list | cut -d',' -f1)"}; do
-		 [[ \${fdeuser} != \${username} ]] && fdesetup remove -user "\${fdeuser}"
+		for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
+		 [[ ${fdeuser} != ${username} ]] && fdesetup remove -user "${fdeuser}"
 		done
 		return 0
 	}
 
-	[[ \$(id -un) == 'root' ] || { lop -- -e 'This script needs to be run by root. Aborting.'; return }
+	[[ $(id -un) == 'root' ]] || { lop -- -e 'This script needs to be run by root. Aborting.'; return }
 	isFilevaultEnabled || { lop -- -e 'FileVault is disabled. Aborting.'; return }
 	doesFilevaultUserExist && isFilevaultUserEnabled && allowOnlyFilevaultUserToUnlock
 }
