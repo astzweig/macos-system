@@ -13,12 +13,13 @@ function buildExternCommandName() {
 			return 10
 		fi
 	done
+	args=("$@")
 }
 
 function dispatchToExtern() {
-	local cmdName=
+	local cmdName= args=()
 	buildExternCommandName "$@" || return $?
-	$cmdName "$@"
+	$cmdName "${args[@]}"
 }
 
 function dispatchCommand() {
