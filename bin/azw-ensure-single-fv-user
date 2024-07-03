@@ -24,9 +24,13 @@ function main {
 		return 0
 	}
 
+	function disableUser() {
+		pwpolicy -u ${username} -disableuser
+	}
+
 	[[ $(id -un) == 'root' ]] || { lop -- -e 'This script needs to be run by root. Aborting.'; return }
 	isFilevaultEnabled || { lop -- -e 'FileVault is disabled. Aborting.'; return }
-	doesFilevaultUserExist && isFilevaultUserEnabled && allowOnlyFilevaultUserToUnlock
+	doesFilevaultUserExist && isFilevaultUserEnabled && allowOnlyFilevaultUserToUnlock && disableUser
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel || "${ZSH_EVAL_CONTEXT}" == cmdarg ]]; then
