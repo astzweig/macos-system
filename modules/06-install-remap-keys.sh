@@ -117,8 +117,9 @@ function createLaunchDaemon() {
 }
 
 function enableLaunchDaemon() {
-	launchctl enable system/${launchDaemonPath%.*}
-	launchctl bootstrap system ${launchDaemonPath}
+	local serviceName="$($dataProvider LaunchdServiceName)"
+	launchctl enable system/${serviceName}
+	launchctl bootstrap system/ ${launchDaemonPath}
 }
 
 function createLaunchdService() {
