@@ -172,6 +172,31 @@ function installHomebrewUpdater() {
 	return
 }
 
+function createEnvFileIfNotExists() {
+	local envFile=$1 owner=$2 permission=$3
+	[[ -f $envFile ]] && return
+	touch $envFile
+	ensureOwnerAndPermission $envFile $owner $permission
+}
+
+function extendPathInEnvFile() {
+	local homebrewBinPath="$(getHomebrewRepositoryPath)/bin"
+	local homebrewSBinPath="$(getHomebrewRepositoryPath)/sbin"
+	local pathsToAdd=()
+	createEnvFileIfNotExists $envFile $owner $permission
+	for p in ${homebrewBinPath} ${homebrewSBinPath}; do
+		{ cat $envFile 2> /dev/null | grep $p >&! /dev/null } || pathsToAdd+=( "\"${p}\"" )
+	done
+	[[ ${#pathsToAdd} -gt 0 ]] || return
+	print -- "path+=($pathsToAdd)" >> $envFile
+}
+
+function modifyPathForAll() {
+	local envFile=/etc/zshenv owner=root permission='u=rw,go=r'
+	[[ $(uname -m) == arm64 ]] || return
+	extendPathInEnvFile
+}
+
 function configure_system() {
 	lop -y h1 -- -i 'Install System Homebrew'
 	createHomebrewUserIfNeccessary || return 10
@@ -183,6 +208,7 @@ function configure_system() {
 	indicateActivity 'Create brew caller script' createBrewCallerScript || return 16
 	indicateActivity 'Create brew periodic script' createBrewPeriodicScript || return 17
 	indicateActivity 'Install Homebrew updater' installHomebrewUpdater || return 18
+	indicateActivity 'Modify PATH for all users' modifyPathForAll || return 19
 }
 
 function getExecPrerequisites() {
