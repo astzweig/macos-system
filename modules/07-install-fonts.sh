@@ -4,13 +4,14 @@
 function installGoogleFonts() {
 	local fontsDir=/Library/Fonts/Google-Fonts
 	[[ -d ${fontsDir} ]] && return
-	indicateActivity 'Download Google Fonts' git clone "${git_google_fonts}" "${fontsDir}"
-	indicateActivity 'Fix Directory Permissions' find ${fontsDir} -type d -mindepth 1 -exec chmod g+rwx,o+rx {} \;
-	indicateActivity 'Fix File Permissions' find ${fontsDir} -type f -mindepth 1 -exec chmod g+rw,o+r {} \;
+	indicateActivity -- 'Download Google Fonts' git clone "${git_google_fonts}" "${fontsDir}"
+	indicateActivity -- 'Fix Directory Permissions' find ${fontsDir} -type d -mindepth 1 -exec chmod g+rwx,o+rx {} \;
+	indicateActivity -- 'Fix File Permissions' find ${fontsDir} -type f -mindepth 1 -exec chmod g+rw,o+r {} \;
 }
 
 function configure_system() {
 	lop -y h1 -- -i 'Install Fonts'
+	installGoogleFonts
 }
 
 function getExecPrerequisites() {
