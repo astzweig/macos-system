@@ -47,6 +47,7 @@ function installBrews() {
 		installBrew node
 		installBrew nmap
 		installBrew tree
+		installBrew yubico-piv-tool
 	fi
 }
 
