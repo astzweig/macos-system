@@ -17,6 +17,7 @@ function main() {
   installMASApp Pages 409201541
   installMASApp Numbers 409203825
   installMASApp Outbank 1094255754
+  installMASApp 'AusweisApp2' 948660805
   installMASApp 'Final Cut Pro' 424389933
   installMASApp GarageBand 682658836
   installMASApp Motion 434290957
