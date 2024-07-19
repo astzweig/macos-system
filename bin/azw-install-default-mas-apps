@@ -24,6 +24,7 @@ function main() {
   installMASApp Compressor 424390742
   installMASApp 'Logic Pro' 634148309
 	installMASApp 'Apple Developer' 640199958
+	installMASApp 'Notebooks' 1449826029
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
