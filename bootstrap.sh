@@ -47,6 +47,7 @@ function majorMinor() {
 }
 
 function shouldInstallCommandLineTools() {
+	[[ ! -d "/Applications/Xcode.app" ]] || return 1
 	local macosVersion=$(majorMinor $(/usr/bin/sw_vers -productVersion))
 	if versionGT "${macosVersion}" "10.13"
 	then
