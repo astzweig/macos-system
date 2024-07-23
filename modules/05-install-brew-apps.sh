@@ -27,6 +27,7 @@ function installCasks() {
 		installCask prizmo
 		installCask rectangle
 		installCask launchcontrol
+		installCask 1password
 	fi
 }
 
