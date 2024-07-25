@@ -38,6 +38,7 @@ function installBrews() {
 	lop -y body:h1 -- -i 'Installing Homebrew formulas'
 	installBrew mas
 	if ! isDebug; then
+		installBrew go
 		installBrew python
 		installBrew rcm
 		installBrew php
