@@ -41,6 +41,7 @@ function installBrews() {
 		installBrew go
 		installBrew python
 		installBrew rcm
+		installBrew ruby
 		installBrew php
 		installBrew composer
 		installBrew curl
