@@ -2,7 +2,7 @@
 # vi: set ft=zsh tw=80 ts=2
 
 function getQuestionsPrerequisites() {
-	[[ $(id -un) != root ]] || { lop -- -e 'System settings module requires root access to pose questions. Please run as root.'; return 11 }
+	[[ $(id -un) == root ]] || { lop -- -e 'System settings module requires root access to pose questions. Please run as root.'; return 11 }
 }
 
 function getExecPrerequisites() {
