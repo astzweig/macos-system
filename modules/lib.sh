@@ -8,7 +8,7 @@ function autoloadZShLib() {
 		local funcNames=($(find "${ASTZWEIG_ZSHLIB}" -type f -perm +u=x -maxdepth 1 | awk -F/ '{ print $NF }'))
 		autoload -Uz ${funcNames}
 	elif [[ -f ${ASTZWEIG_ZSHLIB} ]]; then
-		autoload -Uzw ${ASTZWEIG_ZSHLIB:t}
+		autoload -Uzw ${ASTZWEIG_ZSHLIB}
 	fi
 }
 
