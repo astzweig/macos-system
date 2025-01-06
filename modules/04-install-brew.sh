@@ -36,12 +36,15 @@ function ensureUserCanRunPasswordlessSudo() {
 }
 
 function getFirstFreeRoleAccountID() {
-	dscl . -list '/Users' UniqueID | grep '_.*' | sort -n -k2 | awk -v i=401 '$2>200 && $2<401 {if(i < $2) { print i; nextfile} else i=$2+1;}'
+	local minUserID=450
+	local maxUserID=499
+	dscl . -list '/Users' UniqueID | grep '_.*' | sort -n -k2 | awk -v i=${minUserID} '$2>='${minUserID}' && $2<'${maxUserID}' {if(i < $2) { print i; nextfile} else i=$2+1;} END {if(i <= '${maxUserID}' && ($2 < '${minUserID}' || $2 > '${maxUserID}')) print i;}'
 }
 
 function createHomebrewUser() {
 	local username=$1
 	local userID=`getFirstFreeRoleAccountID`
+	[[ -n $userID ]] || return 10
 	sysadminctl -addUser "${username}" -fullName "Homebrew User" -shell /usr/bin/false -home '/var/empty' -roleAccount -UID "${userID}" > /dev/null 2>&1
 }
 
