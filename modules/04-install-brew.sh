@@ -36,8 +36,8 @@ function ensureUserCanRunPasswordlessSudo() {
 }
 
 function getFirstFreeRoleAccountID() {
-	local minUserID=450
-	local maxUserID=499
+	local minUserID=200
+	local maxUserID=400
 	dscl . -list '/Users' UniqueID | grep '_.*' | sort -n -k2 | awk -v i=${minUserID} '$2>='${minUserID}' && $2<'${maxUserID}' {if(i < $2) { print i; nextfile} else i=$2+1;} END {if(i <= '${maxUserID}' && ($2 < '${minUserID}' || $2 > '${maxUserID}')) print i;}'
 }
 
