@@ -18,40 +18,62 @@ function installBrew() {
 function installCasks() {
 	lop -y body:h1 -- -i 'Installing Homebrew casks'
 	if ! isDebug; then
-		installCask sketch
-		installCask nova
-		installCask transmit
-		installCask automattic-texts
-		installCask synology-drive
-		installCask sf-symbols
-		installCask prizmo
-		installCask rectangle
-		installCask launchcontrol
 		installCask 1password
+		installCask beeper
+		installCask chatgpt
+		installCask chromium
+		installCask firefox
+		installCask hazel
+		installCask istat-menus
+		installCask launchcontrol
+		installCask makemkv
+		installCask nova
+		installCask rapidapi
+		installCask rectangle
+		installCask sf-symbols
+		installCask sketch
+		installCask suspicious-package
+		installCask synology-drive
+		installCask transmit
+		installCask tor-browser
+		installCask transmit
+		installCask vlc
 	fi
 }
 
 function installFonts() {
+	installCask font-new-york
+	installCask font-sf-compact
+	installCask font-sf-mono
+	installCask font-sf-pro
 }
 
 function installBrews() {
 	lop -y body:h1 -- -i 'Installing Homebrew formulas'
 	installBrew mas
 	if ! isDebug; then
+		installBrew colima
+		installBrew composer
+		installBrew curl
+		installBrew docker
+		installBrew exiftool
+		installBrew ffmpeg
+		installBrew 'yarlson/ftl/ftl'
+		installBrew gnupg
 		installBrew go
+		installBrew imapsync
+		installBrew nmap
+		installBrew node
+		installBrew pdfgrep
+		installBrew php
 		installBrew python
 		installBrew rcm
 		installBrew ruby
-		installBrew php
-		installBrew composer
-		installBrew curl
-		installBrew exiftool
-		installBrew ffmpeg
-		installBrew gnupg
-		installBrew node
-		installBrew nmap
+		installBrew rust-parallel
+		installBrew 'lemoony/tap/snipkit'
 		installBrew tree
-		installBrew yubico-piv-tool
+		installBrew 'roots/tap/trellis-cli'
+		installBrew yq
 	fi
 }
 
