@@ -114,8 +114,6 @@ function main() {
 	  -l, --list               List modules that are going to be installed and
 	                           exit without installation. Modules are printed in
 	                           minimal but still distinct paths.
-	  --host-specific          Include host-specific default modules.
-	  --host-specific-only     Include only host-specific default modules.
 	  -d FILE, --logfile FILE  Print log message to logfile instead of stdout.
 	  -v, --verbose            Be more verbose.
 	  --config-only PATH       Ask module questions, generate config at PATH and
@@ -132,8 +130,7 @@ function main() {
 	lop -- -d "Current working dir is: `pwd`"
 	lop -- -d "Called main with $# args: $*"
 
-	[[ ${host_specific_only} == 'false' ]] && modpath+=("${_DIR}/modules")
-	[[ ${host_specific} == 'true' || ${host_specific_only} == 'true' ]] && modpath+=("${_DIR}/modules/host-specific")
+	modpath+=("${_DIR}/modules")
   { [[ ${inverse} == true ]] && inverse=-i } || inverse=
 	loadModules -v modulesToInstall ${$(echo -m):^^modpath} ${inverse} "${module[@]}"
 	[ "${list}" = true ] && printModulesToInstall
