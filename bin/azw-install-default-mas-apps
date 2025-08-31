@@ -13,21 +13,30 @@ function installMASApp() {
 
 function main() {
   lop -y h1 -- -i 'Install Mac AppStore Apps'
-  installMASApp Keka 470158793
-  installMASApp Pages 409201541
-  installMASApp Numbers 409203825
-  installMASApp Outbank 1094255754
-  installMASApp 'AusweisApp2' 948660805
-  installMASApp 'Final Cut Pro' 424389933
-  installMASApp GarageBand 682658836
-  installMASApp Motion 434290957
-  installMASApp Compressor 424390742
-  installMASApp 'Logic Pro' 634148309
-  installMASApp 'Apple Developer' 640199958
-  installMASApp 'Notebooks' 1449826029
-  installMASApp 'Affinity Photo 2' 1616822987
   installMASApp 'Affinity Designer 2' 1616831348
+  installMASApp 'Affinity Photo 2' 1616822987
   installMASApp 'Affinity Publisher 2' 1606941598
+  installMASApp 'AusweisApp' 948660805
+  installMASApp 'Compressor' 424390742
+  installMASApp 'Developer' 640199958
+  installMASApp 'Diagrams' 1276248849
+  installMASApp 'Final Cut Pro' 424389933
+  installMASApp 'Iconographer Mini' 1541509510
+  installMASApp 'iMazing Profile Editor' 1487860882
+  installMASApp 'Infuse' 1136220934
+  installMASApp 'Keka' 470158793
+  installMASApp 'Keynote' 409183694
+  installMASApp 'Mass Rename' 1175416599
+  installMASApp 'Microsoft Excel' 462058435
+  installMASApp 'Microsoft Word' 462054704
+  installMASApp 'Motion' 434290957
+  installMASApp 'Numbers' 409203825
+  installMASApp 'Outbank' 1094255754
+  installMASApp 'Pages' 409201541
+  installMASApp 'Pixelmator Pro' 1289583905
+  installMASApp 'SnippetsLab' 1006087419
+  installMASApp 'WorkingHours' 1495643653
+  installMASApp 'Xcode' 497799835
 }
 
 if [[ "${ZSH_EVAL_CONTEXT}" == toplevel ]]; then
