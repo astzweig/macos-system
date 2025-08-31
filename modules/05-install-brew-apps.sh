@@ -22,19 +22,23 @@ function installCasks() {
 		installCask beeper
 		installCask chatgpt
 		installCask chromium
+		installCask cryptomator
+		installCask devonthink
 		installCask firefox
 		installCask hazel
 		installCask istat-menus
 		installCask launchcontrol
 		installCask makemkv
+		installCask network-radar
 		installCask nova
+		installCask orbstack
 		installCask rapidapi
 		installCask rectangle
 		installCask sf-symbols
 		installCask sketch
 		installCask suspicious-package
 		installCask synology-drive
-		installCask transmit
+		installCask tableplus
 		installCask tor-browser
 		installCask transmit
 		installCask vlc
@@ -52,27 +56,33 @@ function installBrews() {
 	lop -y body:h1 -- -i 'Installing Homebrew formulas'
 	installBrew mas
 	if ! isDebug; then
-		installBrew colima
+		installBrew bun
+		installBrew cocogitto
 		installBrew composer
 		installBrew curl
 		installBrew docker
+		installBrew docker-buildx
 		installBrew exiftool
 		installBrew ffmpeg
-		installBrew 'yarlson/ftl/ftl'
 		installBrew gnupg
 		installBrew go
+		installBrew goreleaser
+		installBrew imagemagick
+		installBrew imap-backup
 		installBrew imapsync
 		installBrew nmap
 		installBrew node
 		installBrew pdfgrep
 		installBrew php
 		installBrew python
+		installBrew qpdf
 		installBrew rcm
 		installBrew ruby
-		installBrew rust-parallel
+		installBrew 'hay-kot/scaffold-tap/scaffold'
 		installBrew 'lemoony/tap/snipkit'
+		installBrew sqlite
 		installBrew tree
-		installBrew 'roots/tap/trellis-cli'
+		installBrew tidy-html5
 		installBrew yq
 	fi
 }
