@@ -63,7 +63,7 @@ function removeNewlines() {
 }
 
 function acceptXcodeLicense() {
-	xcodebuild -license accept 2> /dev/null
+	sudo xcodebuild -license accept 2> /dev/null
 }
 
 function installCommandLineTools() {
@@ -182,7 +182,7 @@ function main() {
 	print 'Will now run the installer.'
 	[ -t 1 ] && tput cnorm
 	isDebug && export MACOS_SYSTEM_DEBUG=true
-	"${tmpdir}/install.sh" "$@"
+	sudo "${tmpdir}/install.sh" "$@"
 	[ -t 1 ] && tput civis
 	popd -q
 }
