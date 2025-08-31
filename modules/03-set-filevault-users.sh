@@ -16,7 +16,7 @@ function createLaunchDaemon() {
 			<key>ProgramArguments</key>
 			<array>
 					<string>/usr/local/bin/azw</string>
-					<string>ensure-single-fv-user</string>
+					<string>set-filevault-users</string>
 					<string>${filevault_username}</string>
 			</array>
 			<key>OnDemand</key>
@@ -36,7 +36,7 @@ function enableLaunchDaemon() {
 }
 
 function createLaunchdService() {
-	local serviceName='de.astzweig.macos.launchdaemons.ensure-single-filevault-user'
+	local serviceName='de.astzweig.macos.launchdaemons.set-filevault-users'
 	local launchDaemonPath="/Library/LaunchDaemons/${serviceName}.plist"
 	[[ -f ${launchDaemonPath} ]] || indicateActivity -- 'Create Launch Daemon' createLaunchDaemon
 	indicateActivity -- 'Enable Launch Daemon' enableLaunchDaemon

@@ -18,8 +18,8 @@ function main {
 
 	function allowOnlyFilevaultUserToUnlock() {
 		local fdeuser
-		for fdeuser in ${(f)"$(fdesetup list | cut -d',' -f1)"}; do
-		 [[ ${fdeuser} != ${username} ]] && fdesetup remove -user "${fdeuser}"
+		for fdeuser in $(fdesetup list | cut -d',' -f1); do
+		 [[ ${fdeuser} != ${username} && ${fdeuser} != "admin" ]] && fdesetup remove -user "${fdeuser}"
 		done
 		return 0
 	}
