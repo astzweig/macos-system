@@ -13,9 +13,6 @@ function installMASApp() {
 
 function main() {
   lop -y h1 -- -i 'Install Mac AppStore Apps'
-  installMASApp 'Affinity Designer 2' 1616831348
-  installMASApp 'Affinity Photo 2' 1616822987
-  installMASApp 'Affinity Publisher 2' 1606941598
   installMASApp 'AusweisApp' 948660805
   installMASApp 'Compressor' 424390742
   installMASApp 'Developer' 640199958
